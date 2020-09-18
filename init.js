@@ -2,7 +2,9 @@
 
 const fs = require('fs');
 
-fs.mkdir('./lib', { recursive: true }, err => {
+const args = process.argv.slice(2);
+
+fs.mkdir(`${args[0] ? args[0] : '.'}/lib`, { recursive: true }, err => {
     if (err) {
         console.error('Initialization failed:');
         console.error(err);
