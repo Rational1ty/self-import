@@ -8,12 +8,7 @@ const args = process.argv.slice(2);
 
 // General help
 if (args.length === 0) {
-    console.log('usage: simp [-v | --version] [-h | --help] <command> [<args>]');
-    console.log('\nList of common simp commands:');
-    console.log('    help\t\tRead about a specific command');
-    console.log('    init\t\tCreate an empty lib folder');
-    console.log('    install\t\tImport a package or file to /lib from a specific language library');
-    console.log('    drop\t\tRemove the specified library package or files from /lib');
+    cp.fork('./help.js', args, { detached: true });
     process.exit(0);
 }
 
@@ -32,6 +27,6 @@ switch (args[0]) {
     case 'i': args[0] = 'install'; break;
 }
 
-cp.fork(`./${args[0]}.js`, [args.slice(1)], {
+cp.fork(`./${args[0]}.js`, args.slice(1), {
     cwd: process.cwd()
 });
