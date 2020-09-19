@@ -1,7 +1,8 @@
 {
   "name": "simp",
   "bin": {
-    "simp": "./index.js"
+    "simp": "./index.js",
+    "install": "./install.js"
   },
   "version": "0.2.0",
   "description": "",
