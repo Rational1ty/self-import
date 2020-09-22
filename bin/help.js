@@ -1,7 +1,5 @@
 "use strict";
-
 const args = process.argv.slice(2);
-
 if (args.length === 0) {
     console.log("usage: simp [-v | --version] [-h | --help] <command> [<args>]");
     console.log("\nList of common simp commands:");
@@ -11,7 +9,6 @@ if (args.length === 0) {
     console.log("    drop\t\tRemove the specified library package or files from /lib");
     process.exit(0);
 }
-
 switch (args[0]) {
     case "help":
         console.log("usage: simp help [<command>]");
@@ -20,11 +17,11 @@ switch (args[0]) {
         console.log("usage: simp init [<dir>]");
         break;
     case "install":
-        console.log("usage: simp install [-f | --file] <language>/[<file> | <package>]");
+        console.log("usage: simp install <language>/[<file> | <package>]");
         console.log("aliases: simp i");
         break;
     case "drop":
-        console.log("usage: simp drop [-f | --file] <language>/[<file> | <package>]");
+        console.log("usage: simp drop <language>/[<file> | <package>]");
         break;
     default:
         console.error("error: help page not found");

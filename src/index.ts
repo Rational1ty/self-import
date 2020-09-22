@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-"use strict";
 
-const cp = require('child_process');
-const fs = require('fs');
+import * as cp from 'child_process';
+import path from 'path';
+import fs from 'fs';
 
 const args = process.argv.slice(2);
 
@@ -33,9 +33,10 @@ switch (args[0]) {
 }
 
 if (args[0].match(commands)) {
-    cp.fork(`${__dirname}/${args[0]}.js`, args.slice(1), {
+    cp.fork(`${ path.resolve(__dirname, args[0]) }.js`, args.slice(1), {
         cwd: process.cwd()
     });
+    
 } else {
     console.error("error: command not found");
 }
