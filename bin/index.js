@@ -28,7 +28,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const args = process.argv.slice(2);
 if (args.length === 0) {
-    console.log('usage: simp [-v | --version] [-h | --help] <command> [<args>]');
+    console.log('usage: simp [-v | --version] <command> [<args>]');
     console.log('\nList of common simp commands:');
     console.log('    help\t\tRead about a specific command');
     console.log('    init\t\tCreate an empty lib folder');
