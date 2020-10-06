@@ -1,0 +1,28 @@
+{
+	"usage": "simp [-v | --version] <command> [<args> ...]",
+	"help": {
+		"aliases": ["h", "?"],
+		"usage": "simp help [<command>]",
+		"description": "Read about a specific command or get a general overview"
+	},
+	"init": {
+		"aliases": ["create"],
+		"usage": "simp init <language> [<dir>]",
+		"description": "Create a new project or initialize an existing project"
+	},
+	"install": {
+		"aliases": ["i", "add"],
+		"usage": "simp install [-m | --meta] <package>[/<file>] [<package>[/<file>] ...]",
+		"description": "Import dependencies into a project"
+	},
+	"drop": {
+		"aliases": ["rm", "remove", "uninstall", "unlink"],
+		"usage": "simp drop <package>[/<file>] [<package>[/<file>] ...]",
+		"description": "Remove dependencies from a project"
+	},
+	"publish": {
+		"aliases": [],
+		"usage": "simp publish [<dir> | <file>]",
+		"description": "Remove dependencies from a project"
+	}
+}

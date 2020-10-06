@@ -8,8 +8,8 @@ const args = process.argv.slice(2);
 
 // General help
 if (args.length === 0) {
-    console.log('usage: simp [-v | --version] <command> [<args>]');
-    console.log('\nList of common simp commands:');
+    console.log('Usage: simp [-v | --version] <command> [<args>]');
+    console.log('\nList of commands:');
     console.log('    help\t\tRead about a specific command');
     console.log('    init\t\tCreate an empty lib folder');
     console.log('    install\t\tImport a package or file to /lib from a specific language library');
@@ -30,13 +30,18 @@ const commands = /help|init|install|drop/;
 // Aliases
 switch (args[0]) {
     case 'i': args[0] = 'install'; break;
+    case 'rm': args[0] = 'drop'; break;
+    case 'uninstall': args[0] = 'drop'; break;
 }
 
 if (args[0].match(commands)) {
-    cp.fork(`${ path.resolve(__dirname, args[0]) }.js`, args.slice(1), {
-        cwd: process.cwd()
-    });
-    
+    cp.fork(
+        `${ path.resolve(__dirname, args[0]) }.js`,
+        args.slice(1),
+        {
+            cwd: process.cwd()
+        }
+    );
 } else {
     console.error("error: command not found");
 }

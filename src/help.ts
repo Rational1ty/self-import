@@ -25,5 +25,5 @@ switch (args[0]) {
         console.log("Usage: simp drop (<file> | <package>)");
         break;
     default:
-        console.log("%c Error: help page not found", "color: #FF0000");
+        console.log("Error: help page not found");
 }
