@@ -1,28 +1,37 @@
 {
-	"usage": "simp [-v | --version] <command> [<args> ...]",
+	"simp": {
+		"aliases": [],
+		"usage": "simp [-v | --version] <command> [<arg> ...]",
+		"description": ""
+	},
 	"help": {
-		"aliases": ["h", "?"],
-		"usage": "simp help [<command>]",
+		"aliases": ["h", "man"],
+		"usage": "[<command>]",
 		"description": "Read about a specific command or get a general overview"
 	},
+	"create": {
+		"aliases": [],
+		"usage": "(<template> | <language>) <project_name> [<dir>]",
+		"description": "Create a new project, either blank or from a template"
+	},
 	"init": {
-		"aliases": ["create"],
-		"usage": "simp init <language> [<dir>]",
-		"description": "Create a new project or initialize an existing project"
+		"aliases": [],
+		"usage": "<language> [<dir>]",
+		"description": "Initialize an existing project"
 	},
 	"install": {
 		"aliases": ["i", "add"],
-		"usage": "simp install [-m | --meta] <package>[/<file>] [<package>[/<file>] ...]",
+		"usage": "[-m | --meta] <package>[/<file>] [<package>[/<file>] ...]",
 		"description": "Import dependencies into a project"
 	},
 	"drop": {
 		"aliases": ["rm", "remove", "uninstall", "unlink"],
-		"usage": "simp drop <package>[/<file>] [<package>[/<file>] ...]",
+		"usage": "<package>[/<file>] [<package>[/<file>] ...]",
 		"description": "Remove dependencies from a project"
 	},
 	"publish": {
 		"aliases": [],
-		"usage": "simp publish [<dir> | <file>]",
-		"description": "Remove dependencies from a project"
+		"usage": "[<dir> | <file>]",
+		"description": "Publish file(s) to self-import module repository"
 	}
 }

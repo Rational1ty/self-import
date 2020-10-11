@@ -1,0 +1,31 @@
+{
+	"ctrl": {
+		"reset": "1b[0m",
+		"bright": "1b[1m",
+		"dim": "1b[2m",
+		"underscore": "1b[4m",
+		"blink": "1b[5m",
+		"reverse": "1b[7m",
+		"hidden": "1b[8m"
+	},
+	"fg": {
+		"black": "1b[30m",
+		"red": "1b[31m",
+		"green": "1b[32m",
+		"yellow": "1b[33m",
+		"blue": "1b[34m",
+		"magenta": "1b[35m",
+		"cyan": "1b[36m",
+		"white": "1b[37m"
+	},
+	"bg": {
+		"black": "1b[40m",
+		"red": "1b[41m",
+		"green": "1b[42m",
+		"yellow": "1b[43m",
+		"blue": "1b[44m",
+		"magenta": "1b[45m",
+		"cyan": "1b[46m",
+		"white": "1b[47m"
+	}
+}
