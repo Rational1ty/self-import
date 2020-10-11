@@ -6,6 +6,8 @@ import * as commands from './command_utils'
 import Colors from './console_colors'
 import env from './env.json'
 
+// TODO: add build command (?)
+
 const args = process.argv.slice(2);
 
 // General help
