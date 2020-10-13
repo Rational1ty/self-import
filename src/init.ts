@@ -1,10 +1,12 @@
-import fs from 'fs';
+import fs from 'fs'
+import Colors from './console_colors'
 
 const args = process.argv.slice(2);
 
-fs.mkdir(`${args[0] ? args[0] : '.'}/lib`, { recursive: true }, err => {
+// if (args[0].match(/temp/))
+
+fs.mkdir(`${process.cwd()}/${args[0] ?? '.'}/${'self-modules'}`, { recursive: true }, err => {
     if (err) {
-        console.error('Initialization failed:');
-        console.error(err);
+        Colors.error(`Initialization failed: ${err.message}`)
     }
-});
+})

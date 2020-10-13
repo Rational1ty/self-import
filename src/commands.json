@@ -33,5 +33,10 @@
 		"aliases": [],
 		"usage": "[<dir> | <file>]",
 		"description": "Publish file(s) to self-import module repository"
+	},
+	"verify": {
+		"aliases": [],
+		"usage": "",
+		"description": "Update metadata found in env.json"
 	}
 }
