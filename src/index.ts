@@ -13,7 +13,7 @@ const args = process.argv.slice(2);
 // General help
 if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
     cp.execSync(
-        'node ./bin/help.js',
+        `node ${env.root}/bin/help.js`,
         { stdio: 'inherit' }
     )
     process.exit(0)

@@ -30,7 +30,7 @@ const console_colors_1 = __importDefault(require("./console_colors"));
 const env_json_1 = __importDefault(require("./env.json"));
 const args = process.argv.slice(2);
 if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
-    cp.execSync('node ./bin/help.js', { stdio: 'inherit' });
+    cp.execSync(`node ${env_json_1.default.root}/bin/help.js`, { stdio: 'inherit' });
     process.exit(0);
 }
 if (args[0] === '-v' || args[0] === '--version') {
