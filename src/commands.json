@@ -1,7 +1,7 @@
 {
 	"simp": {
 		"aliases": [],
-		"usage": "simp [-v | --version] <command> [<arg> ...]",
+		"usage": "simp [-h | --help] [-v | --version] <command> [<arg> ...]",
 		"description": ""
 	},
 	"help": {
