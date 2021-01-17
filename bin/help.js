@@ -26,7 +26,7 @@ const console_colors_1 = __importDefault(require("./console_colors"));
 const commands = __importStar(require("./command_utils"));
 const args = process.argv.slice(2);
 if (args.length === 0) {
-    console.log(`Usage: ${commands.obj.simp.usage}`);
+    console.log(`Usage: ${commands.obj.sim.usage}`);
     console.log('\nOptions:');
     console.log('    [-h | --help]\tView a general help page');
     console.log('    [-v | --version]\tDisplay current version number');
