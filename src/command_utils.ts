@@ -8,9 +8,9 @@ export interface CommandList {
 }
 
 export interface Command {
-	"aliases"?: string[],
 	"usage": string,
 	"description": string
+	"aliases"?: string[],
 }
 
 export function isValidCommand(command: string): boolean {
@@ -21,16 +21,15 @@ export function matcher(): RegExp {
 	const commandOrAlias = list.map(key => [key].concat(obj[key].aliases ?? []))
 							   .flat()
 							   .join('|');
-	return new RegExp(`\\b(${commandOrAlias})\\b`, 'i');
+	return new RegExp(`^(${commandOrAlias})$`, 'i');
 }
 
 export function getCommandFromAlias(alias: string): string {
 	if (alias in obj) return alias;
 
 	for (const cmd of list) {
-		for (const a of obj[cmd].aliases ?? []) {
-			if (alias === a) return cmd;
-		}
+		if (obj[cmd].aliases?.includes(alias))
+			return cmd;
 	}
 
 	return alias;

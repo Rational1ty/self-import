@@ -16,16 +16,16 @@
 	},
 	"init": {
 		"aliases": [],
-		"usage": "<language> [<dir>]",
+		"usage": "<language>",
 		"description": "Initialize an existing project"
 	},
 	"install": {
 		"aliases": ["i", "add"],
-		"usage": "[-m | --meta] <package>[/<file>] [<package>[/<file>] ...]",
+		"usage": "[-m | --meta] [@<language>/<package>] | [--lang=<language> <package1> [<package2>] ...]",
 		"description": "Import dependencies into a project"
 	},
-	"drop": {
-		"aliases": ["rm", "remove", "uninstall", "unlink"],
+	"uninstall": {
+		"aliases": ["rm", "remove", "drop", "unlink"],
 		"usage": "<package>[/<file>] [<package>[/<file>] ...]",
 		"description": "Remove dependencies from a project"
 	},
@@ -33,10 +33,5 @@
 		"aliases": [],
 		"usage": "[<dir> | <file>]",
 		"description": "Publish file(s) to self-import module repository"
-	},
-	"verify": {
-		"aliases": [],
-		"usage": "",
-		"description": "Update metadata found in env.json"
 	}
 }

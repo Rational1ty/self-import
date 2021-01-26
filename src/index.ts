@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-import * as cp from 'child_process'
 import fs from 'fs'
+import { execSync } from 'child_process'
 import * as commands from './command_utils'
-import Colors from './console_colors'
-import env from './env.json'
+import * as colors from './console_colors'
 
 // TODO: add build command (?)
 
@@ -12,35 +11,44 @@ const args = process.argv.slice(2);
 
 // General help
 if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
-    cp.execSync(
-        `node ${env.root}/bin/help.js`,
+    execSync(
+        `node ${__dirname}/help.js`,
         { stdio: 'inherit' }
-    )
-    process.exit(0)
+    );
+    process.exit(0);
 }
 
 // Version
 if (args[0] === '-v' || args[0] === '--version') {
-    const raw = fs.readFileSync('./package.json', 'utf-8')
-    const pkg = JSON.parse(raw)
-    console.log(`self-import v${pkg.version}`)
-    process.exit(0)
+    const raw = fs.readFileSync('./package.json', 'utf-8');
+    const pkg = JSON.parse(raw);
+    console.log(`self-import v${pkg.version}`);
+    process.exit(0);
 }
 
+// Any invalid option / not a command
 if (args[0].includes('-')) {
-    Colors.error('invalid flag or option')
-    process.exit(9)
+    colors.error('invalid flag or option');
+    process.exit(0);
 }
 
 if (commands.isValidCommand(args[0])) {
     // If args[0] is an alias, change it to the corresponding command name (canonical name)
-    args[0] = commands.getCommandFromAlias(args[0])
-
-    // Run command subprocess    
-    cp.execSync(
-        `node ${env.root}/bin/${args[0]}.js ${args.slice(1).join(' ')}`,
-        { cwd: process.cwd(), stdio: 'inherit' }
-    )
+	args[0] = commands.getCommandFromAlias(args[0]);
+	
+	// If one of the arguments is a help flag
+	if (args.includes('-h', 1) || args.includes('--help', 1)) {
+		execSync(
+			`node ${__dirname}/help.js ${args[0]}`,
+			{ stdio: 'inherit' }
+		);
+	} else {
+		// Run command subprocess    
+		execSync(
+			`node ${__dirname}/${args[0]}.js ${args.slice(1).join(' ')}`,
+			{ stdio: 'inherit' }
+		);
+	}
 } else {
-    Colors.error('command not found')
+    colors.error('command not found');
 }

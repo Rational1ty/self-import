@@ -1,9 +1,14 @@
+package self_modules;
+
 import static java.lang.System.out;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.function.Function;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+
+// TODO: implement Collection methods
 
 /**
  * A square fixed-length grid class with support for various iterative and
@@ -433,28 +438,29 @@ public class Grid<T> implements Iterable<T> {
 	}
 
 	/**
-	 * Applies the given function argument to every element in this {@code Grid}.
+	 * Applies the given function to every element in the {@code Grid}, replacing the
+	 * original element with the result of the function.
 	 * <p>
-	 * Unlike {@link Grid#forEach(Consumer)}, this method modifies the value of each grid space.
-	 * The return type of the supplied function must be of type {@code T} (no {@code void} return
-	 * type). The function is applied to the elements in the same order as returned by 
+	 * The function is applied to the elements in the same order as returned by 
 	 * {@link Grid#elements()} (that is, by traversing row-by-row).
 	 * 
-	 * @param action The {@code Function} to apply to each element. It must recieve a single input argument
-	 * of type {@code T} and return a result that is also of type {@code T}. The function's
-	 * signature should look like this:
-	 * <pre>(T element) -> T</pre>
+	 * @param operator The {@code Function} to apply to each element.
 	 */
-	public void apply(Function<T, T> action) {
+	public void replaceAll(UnaryOperator<T> operator) {
 		for (int r = 0; r < size; r++) {
 			for (int c = 0; c < size; c++) {
-				grid[r][c] = action.apply(grid[r][c]);
+				grid[r][c] = operator.apply(grid[r][c]);
 			}
 		}
 	}
 
+	// @Override
+	// public void forEach(Consumer<? super T> action) {
+		
+	// }
+
 	/**
-	 * {@inheritDoc}Returns a string representation of the object.
+	 * {@inheritDoc}
 	 */
 	public Iterator<T> iterator() {
 		return new GridIterator<T>(this);
@@ -467,6 +473,7 @@ public class Grid<T> implements Iterable<T> {
 	 * @return A string representation of this {@code Grid}, in the format of {@code Grid (NxN)}
 	 * where {@code N} is the size of the grid.
 	 */
+	@Override
 	public String toString() {
 		return String.format("Grid (%dx%d)", size, size);
 	}

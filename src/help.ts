@@ -1,4 +1,4 @@
-import Colors from './console_colors'
+import * as colors from './console_colors'
 import * as commands from './command_utils'
 
 const args = process.argv.slice(2)
@@ -17,14 +17,16 @@ if (args.length === 0) {
     process.exit(0)
 }
 
-if (args[0].match(commands.matcher())) {
+if (commands.isValidCommand(args[0])) {
     const name = commands.getCommandFromAlias(args[0])
     const command = commands.obj[name]
-    console.log(`Usage: simp ${name} ${command.usage}`)
-    console.log(command.description)
+    console.log(`Usage: sim ${name} [-h | --help] ${command.usage}`)
     if (command.aliases?.length) {
-        console.log(`Aliases: ${command.aliases.join(', ')}`)
+        console.log(`Aliases: ${command.aliases.join(', ')}\n`)
+    } else {
+        console.log()
     }
+    console.log(command.description)
 } else {
-    Colors.error('help page not found')
+    colors.error('help page not found')
 }
