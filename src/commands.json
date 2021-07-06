@@ -9,23 +9,18 @@
 		"usage": "[<command>]",
 		"description": "Read about a specific command or get a general overview"
 	},
-	"create": {
-		"aliases": [],
-		"usage": "(<template> | <language>) <project_name> [<dir>]",
-		"description": "Create a new project, either blank or from a template"
-	},
 	"init": {
 		"aliases": [],
-		"usage": "<language>",
+		"usage": "<template>",
 		"description": "Initialize an existing project"
 	},
 	"install": {
-		"aliases": ["i", "add"],
+		"aliases": ["add", "i"],
 		"usage": "[-m | --meta] [@<language>/<package>] | [--lang=<language> <package1> [<package2>] ...]",
 		"description": "Import dependencies into a project"
 	},
 	"uninstall": {
-		"aliases": ["rm", "remove", "drop", "unlink"],
+		"aliases": ["drop", "remove", "rm", "unlink"],
 		"usage": "<package>[/<file>] [<package>[/<file>] ...]",
 		"description": "Remove dependencies from a project"
 	},
