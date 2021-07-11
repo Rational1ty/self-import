@@ -20,7 +20,7 @@
 		"description": "Import dependencies into the project"
 	},
 	"uninstall": {
-		"aliases": ["drop", "remove", "rm"],
+		"aliases": ["drop", "remove", "rm", "u"],
 		"usage": "<package_1> [<package_2> ...]",
 		"description": "Remove dependencies from the project"
 	},

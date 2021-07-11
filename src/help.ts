@@ -20,7 +20,7 @@ if (args.length === 0) {
 if (commands.isValidCommand(args[0])) {
     const name = commands.getCommandFromAlias(args[0])
     const command = commands.obj[name]
-    console.log(`Usage: sim ${name} [-h | --help] ${command.usage}`)
+    console.log(`Usage: sim ${name} ${command.usage}`)
     if (command.aliases?.length) {
         console.log(`Aliases: ${command.aliases.join(', ')}\n`)
     } else {
