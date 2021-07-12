@@ -27,6 +27,6 @@
 	"publish": {
 		"aliases": [],
 		"usage": "[<directory>]",
-		"description": "Publish a module to self-import module repository"
+		"description": "Publish a package to self-import repository"
 	}
 }
