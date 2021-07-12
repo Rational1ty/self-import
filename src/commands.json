@@ -16,7 +16,7 @@
 	},
 	"install": {
 		"aliases": ["add", "i"],
-		"usage": "(<language> | meta)/<package>",
+		"usage": "<language>/<package>",
 		"description": "Import dependencies into the project"
 	},
 	"uninstall": {

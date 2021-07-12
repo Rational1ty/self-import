@@ -1,4 +1,4 @@
-const languages = ['c', 'c++', 'java', 'javascript', 'python', 'typescript'] as const;
+const languages = ['c', 'c++', 'java', 'javascript', 'json', 'python', 'typescript'] as const;
 export type Language = typeof languages[number];
 
 const templates = ['react'] as const;

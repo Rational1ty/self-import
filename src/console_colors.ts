@@ -38,6 +38,11 @@ export function write(data: any, ...effects: string[]) {
 	process.stdout.write(`${effects.join('')}${data}${ctrl.reset}`);
 }
 
+export function done(message: string) {
+	write('DONE! ', fg.green);
+	console.log(message);
+}
+
 export function warn(message: string) {
 	write('WARN ', fg.yellow);
 	console.log(message);
