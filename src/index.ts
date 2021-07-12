@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import fs from 'fs'
-import { execSync } from 'child_process'
-import * as commands from './command_utils'
-import * as colors from './console_colors'
+import fs from 'fs';
+import { execSync } from 'child_process';
+import * as commands from './command_utils';
+import * as colors from './console_colors';
 
 const args = process.argv.slice(2);
 

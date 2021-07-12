@@ -3,7 +3,12 @@ import { isTemplate } from './env';
 
 const args = process.argv.slice(2);
 
-if (args.length === 0 || !isTemplate(args[0])) {
+if (args.length === 0) {
+    colors.error('no argument provided for <template> parameter');
+    process.exit(0);
+}
+
+if (!isTemplate(args[0])) {
     colors.error(`"${args[0]}" is not a valid template`);
     process.exit(0);
 }
