@@ -5,6 +5,7 @@ import { isLanguage, Language } from './env';
 
 const args = process.argv.slice(2);
 const PACKAGE_PATH = path.join(__dirname, '..', 'packages');
+const CWD = process.cwd();
 
 if (args.length === 0) {
 	colors.error('argument expected');
@@ -17,14 +18,13 @@ for (const s of args) {
 	const files = getPackageFiles(lang, pkg);
 
 	const pkgSource = path.join(PACKAGE_PATH, lang, pkg);
-	const cwd = process.cwd();
 
 	for (const f of files) {
 		const fileName = f.toString();
 		console.log(`Installing "${fileName}"`)
 
 		const src = path.join(pkgSource, fileName);
-		const dest = path.join(cwd, fileName);
+		const dest = path.join(CWD, fileName);
 
 		fs.copyFile(src, dest, err => {
 			if (err) {

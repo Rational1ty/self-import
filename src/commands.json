@@ -12,17 +12,17 @@
 	"init": {
 		"aliases": [],
 		"usage": "<template>",
-		"description": "Initialize an existing project"
+		"description": "Initialize a project according to a template"
 	},
 	"install": {
 		"aliases": ["add", "i"],
-		"usage": "<language>/<package>",
-		"description": "Import dependencies into the project"
+		"usage": "<language>/<package_1> [<language>/<package_2> ...]",
+		"description": "Import dependencies into a project"
 	},
 	"uninstall": {
 		"aliases": ["drop", "remove", "rm", "u"],
-		"usage": "<package_1> [<package_2> ...]",
-		"description": "Remove dependencies from the project"
+		"usage": "<language>/<package_1> [<language>/<package_2> ...]",
+		"description": "Remove dependencies from a project"
 	},
 	"publish": {
 		"aliases": [],
