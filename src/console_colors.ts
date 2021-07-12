@@ -39,7 +39,7 @@ export function write(data: any, ...effects: string[]) {
 }
 
 export function done(message: string) {
-	write('DONE! ', fg.green);
+	write('DONE! ', fg.green, ctrl.bright);
 	console.log(message);
 }
 
@@ -49,6 +49,6 @@ export function warn(message: string) {
 }
 
 export function error(message: string) {
-	write('ERROR ', ctrl.bright, fg.red);
+	write('ERROR ', fg.red, ctrl.bright);
 	console.log(message);
 }
