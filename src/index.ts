@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
 import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import * as commands from './command_utils';
 import * as colors from './console_colors';
 
@@ -18,7 +19,7 @@ if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
 
 // version
 if (args[0] === '-v' || args[0] === '--version') {
-    const raw = fs.readFileSync('./package.json', 'utf-8');
+    const raw = fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8');
     const pkg = JSON.parse(raw);
     console.log(`self-import v${pkg.version}`);
     process.exit(0);
