@@ -10,7 +10,7 @@
 		"description": "Read about a specific command or get a general overview"
 	},
 	"init": {
-		"aliases": [],
+		"aliases": ["create"],
 		"usage": "<template>",
 		"description": "Initialize a project according to a template"
 	},
@@ -26,7 +26,7 @@
 	},
 	"publish": {
 		"aliases": [],
-		"usage": "[<directory>]",
+		"usage": "<language>[/<directory>]",
 		"description": "Publish a package to self-import repository"
 	}
 }

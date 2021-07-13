@@ -13,18 +13,20 @@ if (args.length === 0) {
 
 for (const s of args) {
 	const [lang, pkg] = validatePackage(s);
-
 	const pkgFiles = getPackageFiles(lang, pkg);
+
+	console.log(`Removing "${pkg}"`);
+
 	const cwdFiles = fs.readdirSync(process.cwd())
 
 	for (const f of cwdFiles) {
 		if (!pkgFiles.includes(f)) continue;
 		
-		console.log(`Removing "${f}"`);
+		console.log(` | ${f}`);
 
 		fs.unlink(path.join(cwd, f), err => {
-			if (err && err.code !== "ENOENT") {
-				colors.error(`failed to delete ${f}`);
+			if (err && err.code !== 'ENOENT') {
+				colors.error(`failed to delete "${f}"`);
 			}
 		});
 	}

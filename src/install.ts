@@ -13,14 +13,15 @@ if (args.length === 0) {
 
 for (const s of args) {
 	const [lang, pkg] = validatePackage(s);
-
 	const files = getPackageFiles(lang, pkg);
+	
+	console.log(`Installing "${pkg}"`);
 
 	const pkgSource = path.join(PACKAGE_PATH, lang, pkg);
 
 	for (const f of files) {
 		const fileName = f.toString();
-		console.log(`Installing "${fileName}"`)
+		console.log(` | ${fileName}`);
 
 		const src = path.join(pkgSource, fileName);
 		const dest = path.join(cwd, fileName);
