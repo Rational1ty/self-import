@@ -9,6 +9,11 @@
 		"usage": "[<command>]",
 		"description": "Read about a specific command or get a general overview"
 	},
+	"list": {
+		"aliases": ["show"],
+		"usage": "<language>",
+		"description": "List all packages for a specific language"
+	},
 	"init": {
 		"aliases": ["create"],
 		"usage": "<template>",
