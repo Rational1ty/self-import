@@ -31,7 +31,7 @@
 	},
 	"publish": {
 		"aliases": [],
-		"usage": "<language>[/<directory>]",
+		"usage": "<language>/<package_name> [<directory>]",
 		"description": "Publish a package to self-import repository"
 	}
 }

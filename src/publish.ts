@@ -11,10 +11,8 @@ if (args.length === 0) {
 	process.exit(0);
 }
 
-const useCurrentDir = !args[0].includes('/');
-
-const [lang, pkg] = validatePackage(useCurrentDir ? args[0] + `/${path.basename(cwd)}` : args[0]);
-const src = useCurrentDir ? cwd : path.join(cwd, pkg);
+const [lang, pkg] = validatePackage(args[0]);
+const src = path.join(cwd, args[1] ?? '.');
 
 console.log(`Publishing "${pkg}"`);
 
