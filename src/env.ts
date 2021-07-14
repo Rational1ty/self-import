@@ -1,4 +1,4 @@
-const languages = ['c', 'c++', 'java', 'javascript', 'json', 'python', 'typescript'] as const;
+const languages = ['c', 'cpp', 'java', 'javascript', 'json', 'python', 'typescript'] as const;
 export type Language = typeof languages[number];
 
 export function isLanguage(str: string): str is Language {
