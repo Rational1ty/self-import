@@ -10,8 +10,8 @@
 	},
 	"list": {
 		"aliases": ["show"],
-		"usage": "<language>",
-		"description": "List all packages for a specific language"
+		"usage": "<language>[/<package>]",
+		"description": "List all packages for a specific language, or all files in a specific package"
 	},
 	"init": {
 		"aliases": ["create"],

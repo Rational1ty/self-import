@@ -4,13 +4,13 @@ export const obj: CommandList = commandsJSON;
 export const list = Object.keys(obj).slice(1);
 
 export interface CommandList {
-	[key: string]: Command;
+	readonly [key: string]: Command;
 }
 
 export interface Command {
-	usage: string;
-	description: string;
-	aliases?: string[];
+	readonly usage: string;
+	readonly description: string;
+	readonly aliases?: string[];
 }
 
 export function isValidCommand(command: string): boolean {
@@ -18,9 +18,7 @@ export function isValidCommand(command: string): boolean {
 }
 
 export function matcher(): RegExp {
-	const commandOrAlias = list.map(key => [key].concat(obj[key].aliases ?? []))
-							   .flat()
-							   .join('|');
+	const commandOrAlias = list.map(key => [key].concat(obj[key].aliases ?? [])).flat().join('|');
 	return new RegExp(`^(${commandOrAlias})$`, 'i');
 }
 
