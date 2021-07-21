@@ -20,20 +20,40 @@ console.log(`Publishing "${pkg}"`);
 const dest = path.join(PACKAGE_PATH, lang, pkg);
 fs.mkdirSync(dest, { recursive: true });
 
-// get file names to copy
-const files = fs.readdirSync(src);
+// if second argument is a file name, copy the file into the package
+if (isFile(src)) {
+	const fileName = args[1];
 
-// copy files from source directory to repo
-for (const f of files) {
-	console.log(` | ${f}`);
-
-	fs.copyFile(path.join(src, f), path.join(dest, f), err => {
+	fs.copyFile(src, path.join(dest, fileName), err => {
 		if (err) {
-			colors.error(`failed to copy "${f}"`);
+			colors.error(`failed to copy "${fileName}"`);
 			console.error(err);
 		}
 	});
+	
+	console.log(` | ${fileName}`);
+}
+
+// if second argument is a directory or not present
+else {
+	// get file names to copy
+	const files = fs.readdirSync(src);
+
+	// copy files from source directory to repo
+	for (const f of files) {
+		fs.copyFile(path.join(src, f), path.join(dest, f), err => {
+			if (err) {
+				colors.error(`failed to copy "${f}"`);
+				console.error(err);
+			}
+		});
+		console.log(` | ${f}`);
+	}
 }
 
 console.log();
 colors.done('Package published successfully');
+
+function isFile(p: fs.PathLike): boolean {
+	return fs.statSync(p).isFile();
+}

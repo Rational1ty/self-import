@@ -1,5 +1,3 @@
-package self_modules;
-
 import static java.lang.System.out;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -22,13 +20,7 @@ public class Grid<T> implements Iterable<T> {
 	protected T[][] grid;
 
 	public static void main(String[] args) throws Throwable {
-		Integer[][] arr = {
-			{ 6, 27, 31 },
-			{ 400, 92, 5 },
-			{ 21, 733, 64 }
-		};
-		Grid<Integer> g = Grid.ofRows(arr);
-		g.prettyPrint(false);
+		
 	}
 
 	/**
@@ -170,13 +162,17 @@ public class Grid<T> implements Iterable<T> {
 	 */
 	public Stream<T[]> columns() {
 		Stream.Builder<T[]> cols = Stream.builder();
+
 		for (int c = 0; c < size; c++) {
 			T[] col = (T[]) new Object[size];
+
 			for (int r = 0; r < size; r++) {
 				col[r] = grid[r][c];
 			}
+
 			cols.accept(col);
 		}
+
 		return cols.build();
 	}
 

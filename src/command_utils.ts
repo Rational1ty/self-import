@@ -4,17 +4,17 @@ export const obj: CommandList = commandsJSON;
 export const list = Object.keys(obj).slice(1);
 
 export interface CommandList {
-	[key: string]: Command
+	[key: string]: Command;
 }
 
 export interface Command {
-	"usage": string,
-	"description": string
-	"aliases"?: string[],
+	usage: string;
+	description: string;
+	aliases?: string[];
 }
 
 export function isValidCommand(command: string): boolean {
-	return command.match(matcher()) ? true : false;
+	return matcher().test(command);
 }
 
 export function matcher(): RegExp {

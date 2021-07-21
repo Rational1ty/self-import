@@ -1,6 +1,5 @@
 {
 	"sim": {
-		"aliases": [],
 		"usage": "sim [-h | --help] [-v | --version] <command> [<arg> ...]",
 		"description": ""
 	},
@@ -30,8 +29,7 @@
 		"description": "Remove dependencies from a project"
 	},
 	"publish": {
-		"aliases": [],
-		"usage": "<language>/<package_name> [<directory>]",
+		"usage": "<language>/<package_name> [<directory> | <file>]",
 		"description": "Publish a package to self-import repository"
 	}
 }

@@ -1,5 +1,3 @@
-package self_modules;
-
 /**
  * When thrown, indicates that either the row index or the column index of a grid operation was out
  * of range. Similar to {@linkplain ArrayIndexOutOfBoundsException}.

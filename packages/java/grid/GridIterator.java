@@ -1,5 +1,3 @@
-package self_modules;
-
 /**
  * A subclass of {@link java.util.Iterator} built to traverse a 2-d grid.
  * 
