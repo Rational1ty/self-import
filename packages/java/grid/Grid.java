@@ -1,135 +1,280 @@
 import static java.lang.System.out;
+
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-// TODO: implement Collection methods
-
 /**
- * A square fixed-length grid class with support for various iterative and
- * mutative operations
+ * An immutable rectangular grid implementation of the {@code Collection} interface. Each cell in
+ * the grid always contains some element, even if it is {@code null}, which is permitted.
  * 
- * @author Matthew Davidson
- * @param <T> {@code T} the type of elements stored in the grid
+ * @param <T> the type of elements stored in the grid
  */
-public class Grid<T> implements Iterable<T> {
-	protected int size;
-	protected T[][] grid;
+public class Grid<T> implements Collection<T>, Cloneable {
+	private final T[][] grid;
 
-	public static void main(String[] args) throws Throwable {
-		
+	/**
+	 * The number of rows in this grid.
+	 */
+	public final int rows;
+
+	/**
+	 * The number of columns in this grid.
+	 */
+	public final int cols;
+
+	public static void main(String[] args) {
+		// TODO: implement remove methods
+		// TODO: test everything
+		out.println("no test written");
 	}
 
 	/**
-	 * Construct a new {@code Grid} with a size of 0.
+	 * Constructs an empty grid with no rows or columns.
 	 */
 	public Grid() {
-		this(0);
+		this(0, 0);
 	}
 
 	/**
-	 * Construct an empty {@code Grid} with the given size.
+	 * Constructs a square grid of the smallest size that contains all the elements in the given
+	 * collection.
 	 * 
-	 * @param size The size of the grid.
+	 * @param c the collection containing the elements to place in the grid
 	 */
-	public Grid(int size) {
-		this.size = size;
+	@SuppressWarnings("unchecked")
+	public Grid(Collection<? extends T> c) {
+		int size = (int) Math.ceil(Math.sqrt(Objects.requireNonNull(c).size()));
+		T[] arr = c.toArray((T[]) new Object[0]);
+
 		grid = (T[][]) new Object[size][size];
-	}
+		rows = size;
+		cols = size;
 
-	/**
-	 * Construct a {@code Grid} from the given 2-dimensional array.
-	 * <p>
-	 * Note that the 2-d array must contain rows of uniform length, and the total number of rows
-	 * must equal the length of each row. A 2-d array that does not satisfy these conditions is
-	 * referred to as <em>jagged</em>.
-	 * 
-	 * <pre>
-	 * // Example of a jagged array:
-	 * [
-	 * 	[1, 2, 3],
-	 * 	[4, 5],
-	 * 	[6, 7, 8, 9, 10]
-	 * ]
-	 * </pre>
-	 * 
-	 * @param initial The 2-d array to construct the grid from.
-	 * @throws IllegalArgumentException If the given array is jagged
-	 */
-	public Grid(T[][] initial) throws IllegalArgumentException {
-		if (initial == null) {
-			throw new IllegalArgumentException("Expected 2-d array but got null");
-		}
+		outer:
+		for (int y = 0; y < size; y++) {
+			for (int x = 0; x < size; x++) {
+				int i = (y * size) + x;
 
-		boolean isSquare = true;
-		int rows = initial.length;
-		for (int r = 0; r < rows; r++) {
-			if (initial[r].length != rows) {
-				isSquare = false;
-				break;
+				if (i == arr.length) break outer;
+
+				grid[y][x] = arr[i];
 			}
 		}
-
-		if (isSquare) {
-			size = rows;
-			grid = initial;
-		} else {
-			throw new IllegalArgumentException("Expected square matrix but got jagged matrix");
-		}
 	}
 
 	/**
-	 * Construct a new {@code Grid} of the given size, initialized with a list of elements.
-	 * <p>
-	 * The spaces in the grid are populated in the same order returned by {@link Grid#elements()}
-	 * (that is, row-by-row). If the number of values provided is less than the area of the grid
-	 * ({@code values.length < size * size}), any remaining spaces will be initialized to
-	 * {@code null}.
+	 * Constructs a grid backed by the given 2-d array.
 	 * 
-	 * @param size The size of the grid.
-	 * @param values The elements to place in the grid.
+	 * @param grid the contents of the grid
+	 */
+	public Grid(T[][] grid) {
+		if (isJagged(grid))
+			throw new IllegalArgumentException("Grid cannot be constructed from jagged array");
+
+		this.grid = grid;
+		rows = grid.length;
+		cols = grid[0].length;
+	}
+
+	/**
+	 * Constructs a grid with the given number of rows and columns. The grid is filled with
+	 * {@code null} elements.
+	 * 
+	 * @param rows the number of rows in the grid
+	 * @param cols the number of columns in the grid
+	 */
+	@SuppressWarnings("unchecked")
+	public Grid(int rows, int cols) {
+		grid = (T[][]) new Object[rows][cols];
+		this.rows = rows;
+		this.cols = cols;
+	}
+
+	/**
+	 * Constructs a square grid of the smallest size that contains all of the given elements. All 
+	 * leftover cells are filled with {@code null} elements.
+	 * 
+	 * @param elements the elements to place into the grid
 	 */
 	@SafeVarargs
-	public Grid(int size, T... values) {
-		this.size = size;
-
-		grid = (T[][]) new Object[size][size];
-
-		int i = 0;
-		for (int r = 0; r < size; r++) {
-			for (int c = 0; c < size; c++) {
-				grid[r][c] = values[i];
-				if (i == values.length - 1)
-					break;
-				i++;
-			}
-		}
+	public Grid(T... elements) {
+		this(Arrays.asList(elements));
 	}
 
+	// Static factory methods
+
+	/**
+	 * Constructs a grid from the given rows.
+	 * 
+	 * @param <T> the type of elements in the grid
+	 * @param rows the rows to create the grid from
+	 * @return a new {@code Grid} object
+	 */
 	@SafeVarargs
 	public static <T> Grid<T> ofRows(T[]... rows) {
-		return new Grid<T>(rows);
+		return new Grid<>(rows);
 	}
 
+	/**
+	 * Constructs a grid from the given columns.
+	 * 
+	 * @param <T> the type of elements in the grid
+	 * @param cols the columns to create the grid from
+	 * @return a new {@code Grid} object
+	 */
 	@SafeVarargs
+	@SuppressWarnings("unchecked")
 	public static <T> Grid<T> ofColumns(T[]... cols) {
-		T[][] temp = (T[][]) new Object[cols.length][cols.length];
+		T[][] temp = (T[][]) new Object[cols[0].length][cols.length];
+
 		for (int c = 0; c < cols.length; c++) {
-			for (int r = 0; r < cols[c].length; r++) {
+			for (int r = 0; r < cols[0].length; r++) {
 				temp[r][c] = cols[c][r];
 			}
 		}
-		return new Grid<T>(temp);
+		
+		return new Grid<>(temp);
+	}
+
+	// Static utility methods
+
+	/**
+	 * Tests whether or not the given array is <em>jagged</em>. An array is considered
+	 * jagged if any of the arrays within it are not of uniform length.
+	 * <p>
+	 * Example of rectangular array:
+	 * <pre>
+	 *arr = {
+	 * {1, 2, 3},
+	 * {4, 5, 6},
+	 * {7, 8, 9}
+	 *}
+	 * </pre>
+	 * 
+	 * Example of jagged array:
+	 * <pre>
+	 *arr = {
+	 * {1, 2, 3, 4},
+	 * {5, 6},
+	 * {7, 8, 9}
+	 *}
+	 * </pre>
+	 * 
+	 * @param <T> the type of elements in the array
+	 * @param arr the array to test
+	 * @return {@code true} if the given array is jagged, otherwise {@code false}
+	 */
+	public static <T> boolean isJagged(T[][] arr) {
+		Objects.requireNonNull(arr);
+		int len = arr[0].length;
+		for (int i = 1; i < arr.length; i++) {
+			if (arr[i].length != len) return true;
+		}
+		return false;
+	}
+
+	// Collection methods
+
+	/**
+	 * This operation is not supported by {@code Grid}.
+	 */
+	@Override
+	public boolean add(T e) {
+		throw new UnsupportedOperationException("add() not supported by Grid");
 	}
 
 	/**
-	 * Returns an ordered {@code Stream} of all the elements in this {@code Grid}.
+	 * This operation is not supported by {@code Grid}.
+	 */
+	@Override
+	public boolean addAll(Collection<? extends T> c) {
+		throw new UnsupportedOperationException("addAll() not supported by Grid");
+	}
+
+	/**
+	 * This operation is not supported by {@code Grid}.
+	 */
+	@Override
+	public void clear() {
+		throw new UnsupportedOperationException("clear() not supported by Grid");
+	}
+
+	/**
+	 * Creates and returns a copy of this grid. The copy is backed by a new 2-d array with the
+	 * same values as the original.
+	 * 
+	 * @return a clone of this grid
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public Object clone() {
+		T[][] copy = (T[][]) new Object[rows][cols];
+
+		for (int r = 0; r < rows; r++) {
+			copy[r] = Arrays.copyOf(grid[r], cols);
+		}
+
+		return new Grid<>(copy);
+	}
+
+	@Override
+	public boolean contains(Object o) {
+		for (T e : this) {
+			if (o.equals(e)) return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		for (Object e : c) {
+			if (!this.contains(e)) return false;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) return true;
+		if (!(obj instanceof Grid<?>)) return false;
+
+		var other = (Grid<?>) obj;
+
+		// if both grids point to the same array
+		if (grid == other.grid) return true;
+
+		// check if number of rows/columns are different
+		if (rows != other.rows || cols != other.cols) return false;
+
+		// check if all cells match
+		return Arrays.deepEquals(grid, other.grid);
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.deepHashCode(grid);
+	}
+
+	/**
+	 * Returns {@code true} if {@code this.rows == 0} or {@code this.cols == 0}.
+	 * 
+	 * @return {@code true} if this grid is empty, otherwise {@code false}
+	 */
+	@Override
+	public boolean isEmpty() {
+		return rows == 0 || cols == 0;
+	}
+
+	/**
+	 * Returns an iterator over the elements in this grid.
 	 * <p>
-	 * The returned {@code Stream} starts at row 0, column 0 (the top-left corner) and traverses
-	 * the {@code Grid} row-by-row, like this:
+	 * The iterator starts at row 0, column 0 (the top-left corner) and traverses the grid
+	 * row-by-row, like so:
 	 * 
 	 * <pre>
 	 *1  ->  2  ->  3
@@ -138,122 +283,272 @@ public class Grid<T> implements Iterable<T> {
 	 *4  ->  5  ->  6
 	 * </pre>
 	 * 
-	 * The stream ends at the bottom-right corner of the grid.
+	 * The iterator terminates at the bottom-right corner of the grid.
 	 * 
-	 * @return an ordered {@code Stream} of the elements in the grid.
+	 * @return an iterator over the elements in the grid
 	 */
-	public Stream<T> elements() {
-		return Arrays.stream(grid).flatMap(arr -> Stream.of(arr));
+	@Override
+	public Iterator<T> iterator() {
+		return new GridIterator<>(this);
 	}
 
 	/**
-	 * Returns a {@code Stream} of all of the rows in this {@code Grid}.
-	 * 
-	 * @return the {@code Stream} of rows.
+	 * Iterator that traverses grid elements left to right, top to bottom
 	 */
-	public Stream<T[]> rows() {
-		return Arrays.stream(grid);
-	}
+	private static class GridIterator<T> implements Iterator<T> {
+		private final Grid<T> target;
+		private int row = -1;
+		private int col = -1;
 
-	/**
-	 * Returns a {@code Stream} of all the columns in this {@code Grid}.
-	 * 
-	 * @return the {@code Stream} of columns.
-	 */
-	public Stream<T[]> columns() {
-		Stream.Builder<T[]> cols = Stream.builder();
-
-		for (int c = 0; c < size; c++) {
-			T[] col = (T[]) new Object[size];
-
-			for (int r = 0; r < size; r++) {
-				col[r] = grid[r][c];
-			}
-
-			cols.accept(col);
+		private GridIterator(Grid<T> g) {
+			target = g;
 		}
 
-		return cols.build();
+		@Override
+		public boolean hasNext() {
+			return !(row == target.rows - 1 && col == target.cols - 1);
+		}
+
+		@Override
+		public T next() {
+			col = ++col == target.cols ? 0 : col;
+			row = col == 0 ? row + 1 : row;
+			return target.grid[row][col];
+		}
+
+		/**
+		 * Sets the last element returned by this iterator to the given value.
+		 * 
+		 * @param e the value to replace the element with
+		 */
+		public void set(T e) {
+			target.grid[row][col] = e;
+		}
 	}
 
 	/**
-	 * Access an element in a space in this {@code Grid}.
-	 * 
-	 * @param row The row index of the space.
-	 * @param col The column index of the space.
-	 * @return The element.
-	 * @throws GridIndexOutOfBoundsException If either {@code row} or {@code col} is out of range
-	 * ({@code rowOrCol < 0 || rowOrCol >= size}).
+	 * This operation is not supported by {@code Grid}.
 	 */
-	public T get(int row, int col) throws GridIndexOutOfBoundsException {
+	@Override
+	public boolean remove(Object o) {
+		throw new UnsupportedOperationException("remove() not supported by Grid");
+	}
+
+	/**
+	 * This operation is not supported by {@code Grid}.
+	 */
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		throw new UnsupportedOperationException("removeAll() not supported by Grid");
+	}
+
+	/**
+	 * Replaces each element of this grid with the result of applying the operator to that element.
+	 * <p>
+	 * The operator is applied to the elements in the same order as returned by
+	 * {@link Grid#iterator()}.
+	 * 
+	 * @param op the operator to apply to each element
+	 */
+	public void replaceAll(UnaryOperator<T> op) {
+		final var iter = new GridIterator<T>(this);
+		while (iter.hasNext()) {
+			iter.set(op.apply(iter.next()));
+		}
+	}
+
+	/**
+	 * This operation is not supported by {@code Grid}.
+	 */
+	@Override
+	public boolean removeIf(Predicate<? super T> filter) {
+		throw new UnsupportedOperationException("removeIf() not supported by Grid");
+	}
+
+	/**
+	 * This operation is not supported by {@code Grid}.
+	 */
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		throw new UnsupportedOperationException("retainAll() not supported by Grid");
+	}
+
+	/**
+	 * Returns the area of this grid ({@code rows x cols}).
+	 * 
+	 * @return the number of cells in this grid
+	 */
+	@Override
+	public int size() {
+		return rows * cols;
+	}
+
+	@Override
+	public Object[] toArray() {
+		return Stream.of(grid)
+			.flatMap(Stream::of)
+			.toArray();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <E> E[] toArray(E[] a) {
+		Objects.requireNonNull(a);
+
+		Object[] arr = toArray();
+		int size = size();
+
+		// if the provided array is too small
+		if (a.length < size) {
+			return (E[]) Arrays.copyOf(arr, size, a.getClass());
+		}
+
+		System.arraycopy(arr, 0, a, 0, size);
+		return a;
+	}
+
+	/**
+	 * Returns a string representation of this grid.
+	 * <P>
+	 * The returned string is of the format {@code "Grid (RxC)"} where {@code R} and {@code C} are
+	 * the dimensions of the grid.
+	 * 
+	 * @return a string representation of this grid
+	 */
+	@Override
+	public String toString() {
+		return String.format("Grid (%dx%d)", rows, cols);
+	}
+
+	/**
+	 * Gets the element at the specified position in this grid.
+	 * 
+	 * @param row the row index of the element
+	 * @param col the column index of the element
+	 * @return the element at (row, col)
+	 */
+	public T get(int row, int col) {
 		try {
 			return grid[row][col];
 		} catch (IndexOutOfBoundsException ex) {
-			throw new GridIndexOutOfBoundsException(row, col, size);
+			throw new GridIndexOutOfBoundsException(row, col, rows);
 		}
 	}
 
 	/**
-	 * Set the value of a space in this {@code Grid}. This replaces the old value.
+	 * Returns an entire row from this grid. The returned array is a copy of the row.
 	 * 
-	 * @param row The row index of the space.
-	 * @param col The column index of the space.
-	 * @param element The element to put in the space.
-	 * @throws GridIndexOutOfBoundsException If either {@code row} or {@code col} is out of range
-	 * ({@code rowOrCol < 0 || rowOrCol >= size}).
+	 * @param row the index of the row
+	 * @return the row
 	 */
-	public void set(int row, int col, T element) throws GridIndexOutOfBoundsException {
+	public T[] getRow(int row) {
+		try {
+			return Arrays.copyOf(grid[row], cols);
+		} catch (IndexOutOfBoundsException ex) {
+			throw new GridIndexOutOfBoundsException(row, 0, rows);
+		}
+	}
+
+	/**
+	 * Returns an entire column from this grid. The returned array is a copy of the column.
+	 * 
+	 * @param col the index of the column
+	 * @return the column
+	 */
+	@SuppressWarnings("unchecked")
+	public T[] getColumn(int col) {
+		T[] column = (T[]) new Object[rows];
+		try {
+			for (int r = 0; r < rows; r++) {
+				column[r] = grid[r][col];
+			}
+			return column;
+		} catch (IndexOutOfBoundsException ex) {
+			throw new GridIndexOutOfBoundsException(0, col, rows);
+		}
+	}
+
+	/**
+	 * Replaces the element at the specified position in this grid with the given element.
+	 * 
+	 * @param row the row index of the element
+	 * @param col the column index of the element
+	 * @param element the element to place into the grid
+	 */
+	public void set(int row, int col, T element) {
 		try {
 			grid[row][col] = element;
 		} catch (IndexOutOfBoundsException ex) {
-			throw new GridIndexOutOfBoundsException(row, col, size);
+			throw new GridIndexOutOfBoundsException(row, col, rows);
 		}
 	}
 
 	/**
-	 * Get a specific row from this {@code Grid}.
+	 * Sets the values of an entire row in this grid.
 	 * 
-	 * @param r The index of the row.
-	 * @return The row.
-	 * @throws GridIndexOutOfBoundsException If the row index is out of range
-	 * ({@code r < 0 || r >= size}).
+	 * @param row the row to replace
+	 * @param elements the contents of the row
 	 */
-	public T[] getRow(int r) throws GridIndexOutOfBoundsException {
+	public void setRow(int row, T[] elements) {
 		try {
-			return grid[r];
+			grid[row] = Arrays.copyOf(elements, cols);
 		} catch (IndexOutOfBoundsException ex) {
-			throw new GridIndexOutOfBoundsException(r, 0, size);
+			throw new GridIndexOutOfBoundsException(row, 0, rows);
 		}
 	}
 
 	/**
-	 * Get a specific column from this {@code Grid}.
+	 * Sets the values of an entire column in this grid.
 	 * 
-	 * @param c The index of the column.
-	 * @return The column.
-	 * @throws GridIndexOutOfBoundsException If the column index is out of range
-	 * ({@code c < 0 || c >= size}).
+	 * @param col the column to replace
+	 * @param elements the contents of the column
 	 */
-	public T[] getColumn(int c) throws GridIndexOutOfBoundsException {
-		T[] col = (T[]) new Object[size];
+	public void setColumn(int col, T[] elements) {
 		try {
-			for (int r = 0; r < size; r++) {
-				col[r] = grid[r][c];
+			for (int r = 0; r < rows; r++) {
+				grid[r][col] = r < elements.length ? elements[r] : null;
 			}
-			return col;
 		} catch (IndexOutOfBoundsException ex) {
-			throw new GridIndexOutOfBoundsException(0, c, size);
+			throw new GridIndexOutOfBoundsException(0, col, rows);
 		}
 	}
 
-	public void setRow(int r, T[] content) {
-	}
-
-	public void setColumn(int c, T[] content) {
+	/**
+	 * Returns the row and column of the first occurrence of the specified element in this grid, or
+	 * <code>{-1, -1}</code> if this grid does not contain the element.
+	 * 
+	 * @param o the element to search for
+	 * @return <code>{row, col}</code>, or <code>{-1, -1}</code> if the element was not found
+	 * @see Grid#lastPositionOf(Object)
+	 */
+	public int[] positionOf(Object o) {
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
+				if (o.equals(grid[r][c])) return new int[]{r, c};
+			}
+		}
+		return new int[]{-1, -1};
 	}
 
 	/**
-	 * Print the contents of this {@code Grid} to {@code System.out} with simple formatting.
+	 * Returns the row and column of the last occurrence of the specified element in this grid, or
+	 * <code>{-1, -1}</code> if this grid does not contain the element.
+	 * 
+	 * @param o the element to search for
+	 * @return <code>{row, col}</code>, or <code>{-1, -1}</code> if the element was not found
+	 * @see Grid#positionOf(Object)
+	 */
+	public int[] lastPositionOf(Object o) {
+		for (int r = rows - 1; r >= 0; r--) {
+			for (int c = cols - 1; c >= 0; c--) {
+				if (o.equals(grid[r][c])) return new int[]{r, c};
+			}
+		}
+		return new int[]{-1, -1};
+	}
+
+	/**
+	 * Print the contents of this grid to {@code System.out} with simple formatting.
 	 * <p>
 	 * The output is a grid with cells of equal width and with no dividing lines between cells.
 	 * The content of each space is left-aliged, and there is at least 2 spaces between elements.
@@ -269,8 +564,8 @@ public class Grid<T> implements Iterable<T> {
 		final int maxWidth = longestElementLength();
 		String f = String.format(" %%-%ds ", maxWidth);
 
-		for (int r = 0; r < size; r++) {
-			for (int c = 0; c < size; c++) {
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
 				T e = grid[r][c];
 				String data = e == null ? "null" : e.toString();
 				out.printf(f, data);
@@ -280,7 +575,7 @@ public class Grid<T> implements Iterable<T> {
 	}
 
 	/**
-	 * Print the contents of this {@code Grid} to {@code System.out} with more formatting.
+	 * Print the contents of this grid to {@code System.out} with extra formatting.
 	 * <p>
 	 * The output is a grid of equally-sized cells divided by gridlines. Each element is centererd
 	 * within its space in the grid, and has at least 1 space of padding on its left and right.
@@ -295,7 +590,7 @@ public class Grid<T> implements Iterable<T> {
 	 *│ 21  │ 733 │ 64  │
 	 *└─────┴─────┴─────┘
 	 * </pre>
-	 * Example output 2 (without Unicode):
+	 * Example output 2 (ASCII only):
 	 * <pre>
 	 *+-----+-----+-----+
 	 *|  6  | 27  | 31  |
@@ -306,32 +601,38 @@ public class Grid<T> implements Iterable<T> {
 	 *+-----+-----+-----+
 	 * </pre>
 	 * 
-	 * @param useUnicode If {@code true}, allows the formatter to use special Unicode characters to
-	 * enhance the appearance of the output. Otherwise, it will only use non-special characters to
-	 * avoid any display issues.
+	 * @param useUnicode allows the formatter to use special Unicode characters to
+	 * enhance the appearance of the output; otherwise, it will use ASCII characters only
 	 */
-	public void prettyPrint(boolean useUnicode) {
+	public void pprint(boolean useUnicode) {
 		final int maxWidth = longestElementLength();
 
 		char divider = useUnicode ? '\u2502' : '|';
 		String f = " %s " + divider;
 
 		out.println(gridRow("top", maxWidth, useUnicode));
-		for (int r = 0; r < grid.length; r++) {
+
+		for (int r = 0; r < rows; r++) {
 			out.print(divider);
+
 			for (int c = 0; c < grid[r].length; c++) {
 				T e = grid[r][c];
 				String data = e == null ? "null" : e.toString();
 				String padded = pad(data, maxWidth);
 				out.printf(f, padded);
 			}
+
 			out.println();
-			if (r < size - 1) {
+
+			if (r < rows - 1) {
 				out.println(gridRow("middle", maxWidth, useUnicode));
 			}
 		}
+
 		out.println(gridRow("bottom", maxWidth, useUnicode));
 	}
+
+	// Helper methods for print/pprint
 
 	private String pad(String str, int totalWidth) {
 		int space = totalWidth - str.length();
@@ -363,29 +664,15 @@ public class Grid<T> implements Iterable<T> {
 					break;
 			}
 		} else {
-			switch (location.toLowerCase()) {
-				case "top":
-					start = '+';
-					mid = '+';
-					end = '+';
-					break;
-				case "middle":
-					start = '+';
-					mid = '+';
-					end = '+';
-					break;
-				case "bottom":
-					start = '+';
-					mid = '+';
-					end = '+';
-					break;
-			}
+			start = '+';
+			mid = '+';
+			end = '+';
 		}
 
 		String row = "" + start;
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < cols; i++) {
 			row += between;
-			if (i < size - 1) {
+			if (i < cols - 1) {
 				row += mid;
 			}
 		}
@@ -396,81 +683,16 @@ public class Grid<T> implements Iterable<T> {
 
 	private int longestElementLength() {
 		int maxLen = 0;
-		for (int r = 0; r < grid.length; r++) {
-			for (int c = 0; c < grid[r].length; c++) {
-				int len;
-				if (grid[r][c] == null) {
-					len = 4;
-				} else {
-					len = grid[r][c].toString().length();
+
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
+				int len = grid[r][c] == null ? 4 : grid[r][c].toString().length();
+				if (len > maxLen) {
+					maxLen = len;
 				}
-				maxLen = len > maxLen ? len : maxLen;
 			}
 		}
+
 		return maxLen;
-	}
-
-	/**
-	 * Get the size of this {@code Grid}.
-	 * <p>
-	 * This is equal to the length of one row or one column of the grid (ie, the side length of
-	 * the grid).
-	 * 
-	 * @return The size of the grid
-	 */
-	public int size() {
-		return size;
-	}
-
-	/**
-	 * Get the area of this {@code Grid}.
-	 * <p>
-	 * Equal to {@code size * size}, or the total number of spaces in the grid.
-	 * 
-	 * @return The total number of spaces in the grid
-	 */
-	public int area() {
-		return size * size;
-	}
-
-	/**
-	 * Applies the given function to every element in the {@code Grid}, replacing the
-	 * original element with the result of the function.
-	 * <p>
-	 * The function is applied to the elements in the same order as returned by 
-	 * {@link Grid#elements()} (that is, by traversing row-by-row).
-	 * 
-	 * @param operator The {@code Function} to apply to each element.
-	 */
-	public void replaceAll(UnaryOperator<T> operator) {
-		for (int r = 0; r < size; r++) {
-			for (int c = 0; c < size; c++) {
-				grid[r][c] = operator.apply(grid[r][c]);
-			}
-		}
-	}
-
-	// @Override
-	// public void forEach(Consumer<? super T> action) {
-		
-	// }
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public Iterator<T> iterator() {
-		return new GridIterator<T>(this);
-	}
-
-	/**
-	 * Returns a string representation of this {@code Grid}. The result is a concise but informative
-	 * representation that is easy for a person to read.
-	 * 
-	 * @return A string representation of this {@code Grid}, in the format of {@code Grid (NxN)}
-	 * where {@code N} is the size of the grid.
-	 */
-	@Override
-	public String toString() {
-		return String.format("Grid (%dx%d)", size, size);
 	}
 }
