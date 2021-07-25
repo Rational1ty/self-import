@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * An immutable rectangular grid implementation of the {@code Collection} interface. Each cell in
  * the grid always contains some element, even if it is {@code null}, which is permitted.
  * 
- * @param <T> the type of elements stored in the grid
+ * @param <T> the type of elements stored in this grid
  */
 public class Grid<T> implements Collection<T>, Cloneable {
 	private final T[][] grid;
@@ -41,7 +41,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	}
 
 	/**
-	 * Constructs a square grid of the smallest size that contains all the elements in the given
+	 * Constructs a square grid of the smallest size that contains all of the elements in the given
 	 * collection.
 	 * 
 	 * @param c the collection containing the elements to place in the grid
@@ -185,7 +185,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	 */
 	@Override
 	public boolean add(T e) {
-		throw new UnsupportedOperationException("add() not supported by Grid");
+		throw new UnsupportedOperationException("add(T) not supported by Grid");
 	}
 
 	/**
@@ -193,7 +193,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	 */
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
-		throw new UnsupportedOperationException("addAll() not supported by Grid");
+		throw new UnsupportedOperationException("addAll(Collection<? extends T>) not supported by Grid");
 	}
 
 	/**
@@ -317,29 +317,62 @@ public class Grid<T> implements Collection<T>, Cloneable {
 		}
 
 		/**
-		 * Sets the last element returned by this iterator to the given value.
+		 * Replaces the last element returned by {@code next()} with the given element.
 		 * 
-		 * @param e the value to replace the element with
+		 * @param e the element with which to replace the last element returned
 		 */
 		public void set(T e) {
 			target.grid[row][col] = e;
 		}
+
+		/**
+		 * Removes the last element returned by {@code next()}.
+		 */
+		public void remove() {
+			target.grid[row][col] = null;
+		}
 	}
 
 	/**
-	 * This operation is not supported by {@code Grid}.
+	 * Removes the first occurrence of the specified object from this grid, if it is present. More 
+	 * formally, removes an element {@code e} such that {@code o.equals(e)}.
+	 * <p>
+	 * Calling this method with an argument of {@code null} has no effect and will always return
+	 * {@code false}.
+	 * 
+	 * @param o the element to remove
+	 * @return {@code true} if this grid changed as a result of the call (if the element was removed)
 	 */
 	@Override
 	public boolean remove(Object o) {
-		throw new UnsupportedOperationException("remove() not supported by Grid");
+		if (o == null) return false;
+
+		int[] pos = positionOf(o);
+
+		if (pos[0] == -1) return false;
+
+		grid[pos[0]][pos[1]] = null;
+		return true;
 	}
 
 	/**
-	 * This operation is not supported by {@code Grid}.
+	 * Removes all of the elements in this grid that are also contained in the specified collection.
+	 * After this call returns, this grid will have no elements in common with the specified 
+	 * collection.
+	 * 
+	 * @param c collection containing the elements to be removed
+	 * @return {@code true} if this grid changed as a result of the call
 	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		throw new UnsupportedOperationException("removeAll() not supported by Grid");
+		boolean changed = false;
+
+		for (Object o : c) {
+			if (remove(o))
+				changed = true;
+		}
+
+		return changed;
 	}
 
 	/**
@@ -351,26 +384,45 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	 * @param op the operator to apply to each element
 	 */
 	public void replaceAll(UnaryOperator<T> op) {
+		Objects.requireNonNull(op);
 		final var iter = new GridIterator<T>(this);
+
 		while (iter.hasNext()) {
 			iter.set(op.apply(iter.next()));
 		}
 	}
 
-	/**
-	 * This operation is not supported by {@code Grid}.
-	 */
 	@Override
 	public boolean removeIf(Predicate<? super T> filter) {
-		throw new UnsupportedOperationException("removeIf() not supported by Grid");
+		Objects.requireNonNull(filter);
+
+		final var iter = new GridIterator<T>(this);
+		boolean changed = false;
+
+		while (iter.hasNext()) {
+			if (filter.test(iter.next())) {
+				iter.remove();
+				changed = true;
+			}
+		}
+
+		return changed;
 	}
 
-	/**
-	 * This operation is not supported by {@code Grid}.
-	 */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		throw new UnsupportedOperationException("retainAll() not supported by Grid");
+		Objects.requireNonNull(c);
+
+		final var iter = new GridIterator<T>(this);
+		boolean changed = false;
+
+		while (iter.hasNext()) {
+			if (c.contains(iter.next())) continue;
+			iter.remove();
+			changed = true;
+		}
+
+		return changed;
 	}
 
 	/**
