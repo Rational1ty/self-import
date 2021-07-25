@@ -38,7 +38,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	 * Constructs a square grid of the smallest size that contains all of the elements in the given
 	 * collection.
 	 * 
-	 * @param c the collection containing the elements to place in the grid
+	 * @param c collection containing the elements to place in the grid
 	 */
 	@SuppressWarnings("unchecked")
 	public Grid(Collection<? extends T> c) {
@@ -90,7 +90,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 
 	/**
 	 * Constructs a square grid of the smallest size that contains all of the given elements. All 
-	 * leftover cells are filled with {@code null} elements.
+	 * leftover cells are filled with {@code null}.
 	 * 
 	 * @param elements the elements to place into the grid
 	 */
