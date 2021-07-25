@@ -1,5 +1,4 @@
 import java.util.Collection;
-import java.util.Objects;
 
 public class SquareGrid<T> extends Grid<T> {
 	/**
