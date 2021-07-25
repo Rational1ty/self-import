@@ -9,8 +9,8 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
- * An immutable rectangular grid implementation of the {@code Collection} interface. Each cell in
- * the grid always contains some element, even if it is {@code null}, which is permitted.
+ * A fixed-size rectangular grid implementation of the {@code Collection} interface. {@code null}
+ * elements are permitted.
  * 
  * @param <T> the type of elements stored in this grid
  */
@@ -26,12 +26,6 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	 * The number of columns in this grid.
 	 */
 	public final int cols;
-
-	public static void main(String[] args) {
-		// TODO: implement remove methods
-		// TODO: test everything
-		out.println("no test written");
-	}
 
 	/**
 	 * Constructs an empty grid with no rows or columns.
@@ -52,8 +46,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 		T[] arr = c.toArray((T[]) new Object[0]);
 
 		grid = (T[][]) new Object[size][size];
-		rows = size;
-		cols = size;
+		rows = cols = size;
 
 		outer:
 		for (int y = 0; y < size; y++) {
@@ -197,11 +190,11 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	}
 
 	/**
-	 * This operation is not supported by {@code Grid}.
+	 * Sets the value of every cell in this grid to {@code null}.
 	 */
 	@Override
 	public void clear() {
-		throw new UnsupportedOperationException("clear() not supported by Grid");
+		replaceAll(e -> null);
 	}
 
 	/**
@@ -225,7 +218,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	@Override
 	public boolean contains(Object o) {
 		for (T e : this) {
-			if (o.equals(e)) return true;
+			if (Objects.equals(o, e)) return true;
 		}
 		return false;
 	}
@@ -388,7 +381,9 @@ public class Grid<T> implements Collection<T>, Cloneable {
 		final var iter = new GridIterator<T>(this);
 
 		while (iter.hasNext()) {
-			iter.set(op.apply(iter.next()));
+			T e = iter.next();
+			if (e == null) continue;
+			iter.set(op.apply(e));
 		}
 	}
 
@@ -400,7 +395,8 @@ public class Grid<T> implements Collection<T>, Cloneable {
 		boolean changed = false;
 
 		while (iter.hasNext()) {
-			if (filter.test(iter.next())) {
+			T e = iter.next();
+			if (e != null && filter.test(e)) {
 				iter.remove();
 				changed = true;
 			}
@@ -417,7 +413,8 @@ public class Grid<T> implements Collection<T>, Cloneable {
 		boolean changed = false;
 
 		while (iter.hasNext()) {
-			if (c.contains(iter.next())) continue;
+			T e = iter.next();
+			if (e == null || c.contains(e)) continue;
 			iter.remove();
 			changed = true;
 		}
