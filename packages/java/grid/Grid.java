@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * 
  * @param <T> the type of elements stored in this grid
  */
-public class Grid<T> implements Collection<T>, Cloneable {
+public class Grid<T> implements Collection<T> {
 	private final T[][] grid;
 
 	/**
@@ -193,24 +193,6 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	@Override
 	public void clear() {
 		replaceAll(e -> null);
-	}
-
-	/**
-	 * Creates and returns a copy of this grid. The copy is backed by a new 2-d array with the
-	 * same values as the original.
-	 * 
-	 * @return a clone of this grid
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public Object clone() {
-		T[][] copy = (T[][]) new Object[rows][cols];
-
-		for (int r = 0; r < rows; r++) {
-			copy[r] = Arrays.copyOf(grid[r], cols);
-		}
-
-		return new Grid<>(copy);
 	}
 
 	@Override
@@ -662,7 +644,7 @@ public class Grid<T> implements Collection<T>, Cloneable {
 		for (int r = 0; r < rows; r++) {
 			out.print(divider);
 
-			for (int c = 0; c < grid[r].length; c++) {
+			for (int c = 0; c < cols; c++) {
 				T e = grid[r][c];
 				String data = e == null ? "null" : e.toString();
 				String padded = pad(data, maxWidth);
@@ -731,12 +713,10 @@ public class Grid<T> implements Collection<T>, Cloneable {
 	private int longestElementLength() {
 		int maxLen = 0;
 
-		for (int r = 0; r < rows; r++) {
-			for (int c = 0; c < cols; c++) {
-				int len = grid[r][c] == null ? 4 : grid[r][c].toString().length();
-				if (len > maxLen) {
-					maxLen = len;
-				}
+		for (T e : this) {
+			int len = e == null ? 4 : e.toString().length();
+			if (len > maxLen) {
+				maxLen = len;
 			}
 		}
 

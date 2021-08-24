@@ -5,7 +5,7 @@
 		"incremental": true,
 		"target": "es6",
 		"module": "commonjs",
-		"lib": ["esnext"],
+		"lib": ["esnext", "dom"],
 		"outDir": "./",
 		"removeComments": true,
 		// "jsx": "preserve",
