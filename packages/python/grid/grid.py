@@ -1,5 +1,5 @@
 """
-This module is centered around the provides access to a `Grid` type, which can be used to easliy 
+This module is centered around the `Grid` type, which can be used to easliy 
 represent two-dimensional data. It provides various methods to visualize and manipulate 
 elements within a grid, as well as some auxiliary functions and classes that provide additional
 functionality.
@@ -101,8 +101,8 @@ class Grid:
 		space of padding on each side.
 
 		Args:
-			use_unicode (bool, optional): use unicode characters in output, defaults to True
-			use_thin (bool, optional): use thin box drawing characters in output, defaults to True
+			use_unicode (bool, optional): use unicode characters in output; defaults to True
+			use_thin (bool, optional): use thin box drawing characters in output; defaults to True
 		"""
 		maxwidth = self._longest_element_length()
 		divider = ('│' if use_thin else '┃') if use_unicode else '|'
@@ -167,7 +167,7 @@ class Grid:
 			o (object): the element to add
 
 		Returns:
-			bool: `True` if the element was inserted successfully
+			bool: `True` if the element was inserted successfully, otherwise `False`
 		"""
 		for e, r, c in self.elements():
 			if e is Grid.EMPTY_CELL:
@@ -186,7 +186,7 @@ class Grid:
 			*items (object): the elements to add
 
 		Returns:
-			bool: `True` if all of the elements were inserted successfully
+			bool: `True` if all of the elements were inserted successfully, otherwise `False`
 		"""
 		item_iter = iter(items)
 
@@ -204,9 +204,21 @@ class Grid:
 		return False
 		
 	def clear(self) -> None:
+		"""
+		Clears this grid (all cells are set to `Grid.EMPTY_CELL`).
+		"""
 		self.replaceall(lambda _: Grid.EMPTY_CELL)
 
 	def remove(self, o: object) -> bool:
+		"""
+		Removes the specified object from this grid, if it exists.
+
+		Args:
+			o (object): the object to remove
+
+		Returns:
+			bool: `True` if the element was removed, otherwise `False`
+		"""
 		for e, r, c in self.elements():
 			if e == o:
 				self._grid[r][c] = Grid.EMPTY_CELL
@@ -214,46 +226,120 @@ class Grid:
 		return False
 
 	def removeall(self, *items: object) -> None:
+		"""
+		Removes all of the specified items from this grid.
+
+		Args:
+			*items (object): the items to be removed
+		"""
 		for e, r, c in self.elements():
 			if e not in items: continue
 			self._grid[r][c] = Grid.EMPTY_CELL
 
 	def replaceall(self, replacefn: UnaryOperator) -> None:
+		"""
+		Replaces every element in this grid with the result of calling `replacefn` on that element.
+
+		Args:
+			replacefn (UnaryOperator): mapping function to call for each element
+		"""
 		for e, r, c in self.elements():
 			if e is Grid.EMPTY_CELL: continue
 			self._grid[r][c] = replacefn(e)
 
 	def removeif(self, filter: Predicate) -> None:
+		"""
+		Removes all of the elements from this grid that satisfy the given predicate.
+
+		More specifically, removes each element `e` for which `filter(e) == True`
+
+		Args:
+			filter (Predicate): function used to filter elements
+		"""
 		for e, r, c in self.elements():
 			if e is Grid.EMPTY_CELL: continue
 			if filter(e):
 				self._grid[r][c] = Grid.EMPTY_CELL
 
 	def retainall(self, *items: object) -> None:
+		"""
+		Removes all of the elements in this grid that are not contained in the specified list of
+		items.
+
+		Args:
+			*items (object): the items to keep
+		"""
 		for e, r, c in self.elements():
 			if e in items: continue
 			self._grid[r][c] = Grid.EMPTY_CELL
 
 	def foreach(self, action: Consumer) -> None:
+		"""
+		Performs the given action for each element in this grid.
+
+		The grid is not mutated as a result of this method.
+
+		Args:
+			action (Consumer): the action to perform for each element
+		"""
 		for e in self:
 			action(e)
 
 	def positionof(self, o: object) -> Position:
+		"""
+		Finds the position of the first occurrence of the specified object in this grid.
+
+		Args:
+			o (object): the object to find the position of
+
+		Returns:
+			Position: the position of the object, or `None` if it was not found
+		"""
 		for e, r, c in self.elements():
 			if e == o:
 				return r, c
 		return None
 
 	def lastpositionof(self, o: object) -> Position:
+		"""
+		Finds the position of the last occurrence of the specified object in this grid.
+
+		Args:
+			o (object): the object to find the position of
+
+		Returns:
+			Position: the last position of the object, or `None` if it was not found
+		"""
 		for e, r, c in self.elements(True):
 			if e == o:
 				return r, c
 		return None
 
 	def elements(self, reverse: bool = False) -> Generator[tuple[object, int, int], None, None]:
+		"""
+		Returns all of the elements of this grid along with their positions.
+
+		Args:
+			reverse (bool, optional): if `True`, indicates reverse iteration; defaults to `False`
+
+		Yields:
+			tuple[object, int, int]: the next element and its position `(element, row, col)`
+		"""
 		return ((self._grid[r][c], r, c) for r, c in self.prod_rc(reverse))
 
 	def prod_rc(self, reverse: bool = False) -> it.product:
+		"""
+		Returns the product of this grid's rows and columns.
+
+		The result of this method is an `itertools.product` containing all of the valid
+		`Position`s in this grid.
+
+		Args:
+			reverse (bool, optional): if `True`, indicates reverse iteration; defaults to `False`
+
+		Returns:
+			itertools.product[Position]: `product` object of all possible `(row, col)` combinations
+		"""
 		return it.product(range(self._rows), range(self._cols)) if not reverse \
 		else it.product(reversed(range(self._rows)), reversed(range(self._cols)))
 
@@ -365,12 +451,12 @@ class GridSlice:
 	Similar to the built-in `slice` type, but can be used in two dimensions.
 
 	Attributes:
-		start_y (int): row to start on (inclusive), defaults to `0`
-		start_x (int): column to start on (inclusive), defaults to `0`
-		stop_y (int): row to stop at (exclusive), defaults to `grid.dimensions()[0]`
-		stop_x (int): column to stop at (exclusive), defaults to `grid.dimensions()[1]`
-		step_y (int): step for rows, defaults to `1`
-		step_x (int): step for columns, defaults to `1`
+		start_y (int): row to start on (inclusive); defaults to `0`
+		start_x (int): column to start on (inclusive); defaults to `0`
+		stop_y (int): row to stop at (exclusive); defaults to `grid.dimensions()[0]`
+		stop_x (int): column to stop at (exclusive); defaults to `grid.dimensions()[1]`
+		step_y (int): step for rows; defaults to `1`
+		step_x (int): step for columns; defaults to `1`
 	"""
 
 	def __init__(self, g: Grid, s: slice):
