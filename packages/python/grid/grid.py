@@ -1,8 +1,21 @@
+"""
+This module is centered around the provides access to a `Grid` type, which can be used to easliy 
+represent two-dimensional data. It provides various methods to visualize and manipulate 
+elements within a grid, as well as some auxiliary functions and classes that provide additional
+functionality.
+"""
+
+
 import itertools as it
+from typing import Callable, Final, Generator
 
 
-Indices = tuple[tuple[int, int], ...]
+# Type aliases
 Position = tuple[int, int]
+Dimensions = tuple[int, int]
+UnaryOperator = Callable[[object], object]
+Predicate = Callable[[object], bool]
+Consumer = Callable[[object], None]
 
 
 class _EmptyCell:
@@ -27,9 +40,24 @@ class _EmptyCell:
 
 
 class Grid:
-	EMPTY_CELL = _EmptyCell.getinstance()
+	"""
+	A fixed-size rectangular grid.
+	"""
 
-	def __init__(self, rows: int, cols: int, *elements):
+	EMPTY_CELL: Final = _EmptyCell.getinstance()
+	"""
+	Represents an empty grid cell. This object is the same across all `Grid` instances.
+	"""
+
+	def __init__(self, rows: int, cols: int, *elements: object):
+		"""
+		Creates a new Grid
+
+		Args:
+			rows (int): the number of rows in the grid
+			cols (int): the number of columns in the grid
+			*elements (object): the items to place in the grid
+		"""
 		self._rows = rows
 		self._cols = cols
 		self._grid = []
@@ -39,13 +67,43 @@ class Grid:
 
 	@classmethod
 	def from_rows(cls, *rows: list):
+		"""
+		Creates a new Grid from a list of rows.
+
+		If the rows are not all the same length, they will be padded with 
+		Grid.EMPTY_CELL elements to the length of the longest row.
+
+		Args:
+			*rows (list): the rows to create the grid from
+
+		Returns:
+			Grid: the grid
+		"""
 		max_len = max(len(r) for r in rows)
 		return cls(len(rows), max_len, (_pad_list(r, max_len) for r in rows))
 
-	def dimensions(self) -> tuple[int, int]:
+	def dimensions(self) -> Dimensions:
+		"""
+		Gets the dimensions of this grid.
+
+		Returns:
+			Dimensions: the number of rows and columns in this grid (rows, cols)
+		"""
 		return self._rows, self._cols
-				
+
 	def pprint(self, use_unicode: bool = True, use_thin: bool = True) -> None:
+		"""
+		Print the contents of this grid to the standard output stream with 
+		extra formatting (\"pretty-prints\" the grid).
+
+		The output is a grid of equally-sized cells divided by grid lines. Each
+		element is centered within its space in the grid, and has at least 1
+		space of padding on each side.
+
+		Args:
+			use_unicode (bool, optional): use unicode characters in output, defaults to True
+			use_thin (bool, optional): use thin box drawing characters in output, defaults to True
+		"""
 		maxwidth = self._longest_element_length()
 		divider = ('│' if use_thin else '┃') if use_unicode else '|'
 		f = f' {{:^{maxwidth}}} {divider}'
@@ -98,6 +156,106 @@ class Grid:
 
 	def _longest_element_length(self) -> int:
 		return max(len(str(e)) for e in self)
+
+	def add(self, o: object) -> bool:
+		"""
+		Adds the specified element to this grid.
+
+		The element is inserted into the first empty cell.
+
+		Args:
+			o (object): the element to add
+
+		Returns:
+			bool: `True` if the element was inserted successfully
+		"""
+		for e, r, c in self.elements():
+			if e is Grid.EMPTY_CELL:
+				self._grid[r][c] = o
+				return True
+		return False
+
+	def addall(self, *items: object) -> bool:
+		"""
+		Adds all of the provided elements into this grid.
+
+		The elements are inserted one-by-one into each empty cell until there are no empty cells
+		left or there are no elements remaining.
+
+		Args:
+			*items (object): the elements to add
+
+		Returns:
+			bool: `True` if all of the elements were inserted successfully
+		"""
+		item_iter = iter(items)
+
+		for e, r, c in self.elements():
+			if e is Grid.EMPTY_CELL:
+				try:
+					self._grid[r][c] = next(item_iter)
+				except StopIteration:
+					return True
+
+		try:
+			next(item_iter)
+		except StopIteration:
+			return True
+		return False
+		
+	def clear(self) -> None:
+		self.replaceall(lambda _: Grid.EMPTY_CELL)
+
+	def remove(self, o: object) -> bool:
+		for e, r, c in self.elements():
+			if e == o:
+				self._grid[r][c] = Grid.EMPTY_CELL
+				return True
+		return False
+
+	def removeall(self, *items: object) -> None:
+		for e, r, c in self.elements():
+			if e not in items: continue
+			self._grid[r][c] = Grid.EMPTY_CELL
+
+	def replaceall(self, replacefn: UnaryOperator) -> None:
+		for e, r, c in self.elements():
+			if e is Grid.EMPTY_CELL: continue
+			self._grid[r][c] = replacefn(e)
+
+	def removeif(self, filter: Predicate) -> None:
+		for e, r, c in self.elements():
+			if e is Grid.EMPTY_CELL: continue
+			if filter(e):
+				self._grid[r][c] = Grid.EMPTY_CELL
+
+	def retainall(self, *items: object) -> None:
+		for e, r, c in self.elements():
+			if e in items: continue
+			self._grid[r][c] = Grid.EMPTY_CELL
+
+	def foreach(self, action: Consumer) -> None:
+		for e in self:
+			action(e)
+
+	def positionof(self, o: object) -> Position:
+		for e, r, c in self.elements():
+			if e == o:
+				return r, c
+		return None
+
+	def lastpositionof(self, o: object) -> Position:
+		for e, r, c in self.elements(True):
+			if e == o:
+				return r, c
+		return None
+
+	def elements(self, reverse: bool = False) -> Generator[tuple[object, int, int], None, None]:
+		return ((self._grid[r][c], r, c) for r, c in self.prod_rc(reverse))
+
+	def prod_rc(self, reverse: bool = False) -> it.product:
+		return it.product(range(self._rows), range(self._cols)) if not reverse \
+		else it.product(reversed(range(self._rows)), reversed(range(self._cols)))
 
 	def __repr__(self) -> str:
 		elements = ', '.join(repr(e) for e in self)
@@ -190,73 +348,102 @@ class Grid:
 		return Grid(n_rows, n_cols, *(val for _ in range(n_rows * n_cols)))
 
 	def __iter__(self):
-		return GridIterator(self)
+		return (self._grid[r][c] for r, c in self.prod_rc())
 
 	def __reversed__(self):
-		return GridIterator(self, True)
+		return (self._grid[r][c] for r, c in self.prod_rc(True))
 
 
-class GridIterator:
-	def __init__(self, g: Grid, reverse: bool = False):
-		self._grid = g
-		self._forward = not reverse
-		self._x = 0 if self._forward else g._rows - 1
-		self._y = 0 if self._forward else g._cols - 1
-
-	def __iter__(self):
-		return self
-
-	def __next__(self):
-		return self._next_forward() if self._forward else self._next_reverse()
-
-	def _next_forward(self):
-		if self._y >= self._grid._rows:
-			raise StopIteration()
-
-		element = self._grid[self._y, self._x]
-
-		self._x += 1
-		if self._x >= self._grid._cols:
-			self._y += 1
-			self._x = 0
-
-		return element
-
-	def _next_reverse(self):
-		if self._y < 0:
-			raise StopIteration()
-
-		element = self._grid[self._y, self._x]
-
-		self._x -= 1
-		if self._x < 0:
-			self._y -= 1
-			self._x = self._grid._cols - 1
-
-		return element
+class Grids:
+	...
 
 
 class GridSlice:
+	"""
+	Represents a slice of a grid.
+
+	Similar to the built-in `slice` type, but can be used in two dimensions.
+
+	Attributes:
+		start_y (int): row to start on (inclusive), defaults to `0`
+		start_x (int): column to start on (inclusive), defaults to `0`
+		stop_y (int): row to stop at (exclusive), defaults to `grid.dimensions()[0]`
+		stop_x (int): column to stop at (exclusive), defaults to `grid.dimensions()[1]`
+		step_y (int): step for rows, defaults to `1`
+		step_x (int): step for columns, defaults to `1`
+	"""
+
 	def __init__(self, g: Grid, s: slice):
+		"""
+		Creates a `GridSlice`.
+
+		The start, stop, and step attributes of the `slice` argument can be of type `Position`,
+		`int`, or `None`. Here is an example of how different types of slice arguments are handled:
+
+			If `s.stop` is `None`, `stop_y` and `stop_x` use the default value.\n
+			If `s.stop` is an `int`, `stop_y = s.stop` and `stop_x` uses the default value.\n
+			If `s.stop` is a `tuple[int, int]`, `stop_y, stop_x = s.stop`
+
+		Args:
+			g (Grid): the grid to slice
+			s (slice): the `slice` object used to create the `GridSlice`
+
+		Raises:
+			ValueError: if the slice arguments are not of type `Position`, `int`, or `None`
+			IndexError: if `s.start` or `s.stop` do not contain valid indexes
+		"""
 		self.start_y, self.start_x = self._validatestart(g, *self._getsliceparam(s.start, (0, 0)))
 		self.stop_y, self.stop_x = self._validatestop(g, *self._getsliceparam(s.stop, (g._rows, g._cols)))
 		self.step_y, self.step_x = self._getsliceparam(s.step, (1, 1))
 
 	@classmethod
 	def all(cls, g: Grid):
+		"""
+		Slices all of the elements from the given grid.
+
+		Args:
+			g (Grid): the grid
+
+		Returns:
+			GridSlice: a slice of all of the elements in the grid
+		"""
 		return cls(g, slice(None, None, None))
 
-	def indices(self) -> Indices:
-		return tuple(it.product(self.rows(), self.cols()))
+	def indices(self) -> it.product:
+		"""
+		Gets the positions of the elements included in this slice.
 
-	def dimensions(self):
+		Returns:
+			itertools.product[Position]: the positions of the elements
+		"""
+		return it.product(self.rows(), self.cols())
+
+	def dimensions(self) -> Dimensions:
+		"""
+		Gets the dimensions of the resultant grid of this slice.
+
+		Returns:
+			Dimensions: the number of rows and columns in the slice
+		"""
 		return len(self.rows()), len(self.cols())
 
-	def rows(self) -> tuple[int, ...]:
-		return tuple(i for i in range(self.start_y, self.stop_y, self.step_y))
+	def rows(self) -> range:
+		"""
+		Gets the indexes of the rows included in this slice.
 
-	def cols(self) -> tuple[int, ...]:
-		return tuple(i for i in range(self.start_x, self.stop_x, self.step_x))
+		Returns:
+			range: the rows in this slice
+		"""
+		return range(self.start_y, self.stop_y, self.step_y)
+
+	def cols(self) -> range:
+		"""
+		Gets the indexes of the columns included in this slice.
+
+		Returns:
+			range: the columns in this slice
+		"""
+		return range(self.start_x, self.stop_x, self.step_x)
 
 	@staticmethod
 	def _validatestart(g: Grid, r: int, c: int) -> Position:
