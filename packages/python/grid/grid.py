@@ -1,13 +1,11 @@
 """
-This module is centered around the `Grid` type, which can be used to easliy 
-represent two-dimensional data. It provides various methods to visualize and manipulate 
-elements within a grid, as well as some auxiliary functions and classes that provide additional
-functionality.
+This module provides access to a `Grid` type, which can be used to represent
+2-dimensional data.
 """
 
 
 import itertools as it
-from typing import Callable, Final, Generator
+from typing import Callable, Final, Generator, Union
 
 
 # Type aliases
@@ -66,7 +64,7 @@ class Grid:
 			self._grid.append(_pad_tuple(elements[y * cols : (y + 1) * cols], cols))
 
 	@classmethod
-	def from_rows(cls, *rows: list):
+	def from_rows(cls, *rows: list) -> 'Grid':
 		"""
 		Creates a new Grid from a list of rows.
 
@@ -91,7 +89,7 @@ class Grid:
 		"""
 		return self._rows, self._cols
 
-	def pprint(self, use_unicode: bool = True, use_thin: bool = True) -> None:
+	def pprint(self, use_unicode: bool = True, use_thin: bool = True):
 		"""
 		Print the contents of this grid to the standard output stream with 
 		extra formatting (\"pretty-prints\" the grid).
@@ -101,8 +99,8 @@ class Grid:
 		space of padding on each side.
 
 		Args:
-			use_unicode (bool, optional): use unicode characters in output; defaults to True
-			use_thin (bool, optional): use thin box drawing characters in output; defaults to True
+			use_unicode (bool, optional): use unicode characters in output; defaults to `True`
+			use_thin (bool, optional): use thin box drawing characters in output; defaults to `True`
 		"""
 		maxwidth = self._longest_element_length()
 		divider = ('│' if use_thin else '┃') if use_unicode else '|'
@@ -123,11 +121,13 @@ class Grid:
 
 		print(self._gridrow('bottom', maxwidth, use_unicode, use_thin))
 
-	def _gridrow(self, 
-			location: str, 
-			data_width: int, 
-			use_unicode: bool, 
-			use_thin: bool) -> str:
+	def _gridrow(
+		self,
+		location: str,
+		data_width: int,
+		use_unicode: bool,
+		use_thin: bool
+	) -> str:
 		between = (('─' if use_thin else '━') if use_unicode else '-') * (data_width + 2)
 		start = mid = end = '+'
 
@@ -203,11 +203,22 @@ class Grid:
 			return True
 		return False
 		
-	def clear(self) -> None:
+	def clear(self):
 		"""
 		Clears this grid (all cells are set to `Grid.EMPTY_CELL`).
 		"""
 		self.replaceall(lambda _: Grid.EMPTY_CELL)
+
+	def fill(self, o: object):
+		"""
+		Fills this grid with the specified element.
+
+		This is the same as calling `grid.replaceall(lambda _: o)`.
+
+		Args:
+			o (object): the object to fill this grid with
+		"""
+		self.replaceall(lambda _: o)
 
 	def remove(self, o: object) -> bool:
 		"""
@@ -225,7 +236,7 @@ class Grid:
 				return True
 		return False
 
-	def removeall(self, *items: object) -> None:
+	def removeall(self, *items: object):
 		"""
 		Removes all of the specified items from this grid.
 
@@ -236,7 +247,7 @@ class Grid:
 			if e not in items: continue
 			self._grid[r][c] = Grid.EMPTY_CELL
 
-	def replaceall(self, replacefn: UnaryOperator) -> None:
+	def replaceall(self, replacefn: UnaryOperator):
 		"""
 		Replaces every element in this grid with the result of calling `replacefn` on that element.
 
@@ -247,7 +258,7 @@ class Grid:
 			if e is Grid.EMPTY_CELL: continue
 			self._grid[r][c] = replacefn(e)
 
-	def removeif(self, filter: Predicate) -> None:
+	def removeif(self, filter: Predicate):
 		"""
 		Removes all of the elements from this grid that satisfy the given predicate.
 
@@ -261,7 +272,7 @@ class Grid:
 			if filter(e):
 				self._grid[r][c] = Grid.EMPTY_CELL
 
-	def retainall(self, *items: object) -> None:
+	def retainall(self, *items: object):
 		"""
 		Removes all of the elements in this grid that are not contained in the specified list of
 		items.
@@ -273,7 +284,7 @@ class Grid:
 			if e in items: continue
 			self._grid[r][c] = Grid.EMPTY_CELL
 
-	def foreach(self, action: Consumer) -> None:
+	def foreach(self, action: Consumer):
 		"""
 		Performs the given action for each element in this grid.
 
@@ -285,7 +296,7 @@ class Grid:
 		for e in self:
 			action(e)
 
-	def positionof(self, o: object) -> Position:
+	def positionof(self, o: object) -> Union[Position, None]:
 		"""
 		Finds the position of the first occurrence of the specified object in this grid.
 
@@ -300,7 +311,7 @@ class Grid:
 				return r, c
 		return None
 
-	def lastpositionof(self, o: object) -> Position:
+	def lastpositionof(self, o: object) -> Union[Position, None]:
 		"""
 		Finds the position of the last occurrence of the specified object in this grid.
 
@@ -314,6 +325,51 @@ class Grid:
 			if e == o:
 				return r, c
 		return None
+
+	def getadjacent(
+		self,
+		row: int,
+		col: int,
+		include_diagonals: bool = False
+	) -> tuple[object, ...]:
+		"""
+		Gets all of the elements adjacent to the specified cell, without wrapping.
+
+		Args:
+			row (int): the row of the cell
+			col (int): the column of the cell
+			include_diagonals (bool, optional): indicates whether or not to include elements that
+				are adjacent diagonally; defaults to `False`
+
+		Returns:
+			tuple[object, ...]: list of adjacent elements
+		"""
+
+		# helper function for filtering out None elements
+		not_none = lambda e: e is not None
+
+		row_max, col_max = self._rows - 1, self._cols - 1
+		
+		# adjacent to edges (top, left, bottom, right)
+		neighbors = filter(not_none, (
+			self._grid[row - 1][col] if row > 0 else None,
+			self._grid[row][col - 1] if col > 0 else None,
+			self._grid[row + 1][col] if row < row_max else None,
+			self._grid[row][col + 1] if col < col_max else None
+		))
+
+		if not include_diagonals:
+			return tuple(neighbors)
+
+		# adjacent diagonally (top-left, top-right, bottom-left, bottom-right)
+		diagonals = filter(not_none, (
+			self._grid[row - 1][col - 1] if row > 0 and col > 0 else None,
+			self._grid[row - 1][col + 1] if row > 0 and col < col_max else None,
+			self._grid[row + 1][col - 1] if row < row_max and col > 0 else None,
+			self._grid[row + 1][col + 1] if row < row_max and col < col_max else None
+		))
+
+		return (*neighbors, *diagonals)
 
 	def elements(self, reverse: bool = False) -> Generator[tuple[object, int, int], None, None]:
 		"""
@@ -369,10 +425,10 @@ class Grid:
 			return False
 		return self._grid == o._grid
 
-	def __len__(self):
+	def __len__(self) -> int:
 		return self._rows * self._cols
 
-	def __getitem__(self, pos):
+	def __getitem__(self, pos: Union[Position, slice]):
 		if isinstance(pos, slice):
 			gs = GridSlice(self, pos)
 			sliced = (self._grid[r][c] for r, c in gs.indices())
@@ -384,7 +440,7 @@ class Grid:
 
 		return self._grid[r][c]
 
-	def __setitem__(self, pos, value):
+	def __setitem__(self, pos: Union[Position, slice], value: object):
 		if isinstance(pos, slice):
 			gs = GridSlice(self, pos)
 			fill = self._getfill(gs, value)
@@ -402,7 +458,7 @@ class Grid:
 
 		self._grid[r][c] = value
 
-	def __delitem__(self, pos):
+	def __delitem__(self, pos: Union[Position, slice]):
 		if isinstance(pos, slice):
 			gs = GridSlice(self, pos)
 			for r, c in gs.indices():
@@ -433,10 +489,10 @@ class Grid:
 		
 		return Grid(n_rows, n_cols, *(val for _ in range(n_rows * n_cols)))
 
-	def __iter__(self):
+	def __iter__(self) -> Generator[object, None, None]:
 		return (self._grid[r][c] for r, c in self.prod_rc())
 
-	def __reversed__(self):
+	def __reversed__(self) -> Generator[object, None, None]:
 		return (self._grid[r][c] for r, c in self.prod_rc(True))
 
 
