@@ -430,7 +430,7 @@ class Grid(Generic[T]):
 	def __len__(self) -> int:
 		return self._rows * self._cols
 
-	def __getitem__(self, pos: Union[Position, slice]):
+	def __getitem__(self, pos: Union[Position, slice]) -> Union[T, 'Grid']:
 		if isinstance(pos, slice):
 			gs = GridSlice(self, pos)
 			sliced = (self._grid[r][c] for r, c in gs.indices())
@@ -591,7 +591,7 @@ class GridSlice:
 
 	@staticmethod
 	def _validatestart(g: Grid, r: int, c: int) -> Position:
-		if r >= g._rows or c >= g._rows:
+		if r >= g._rows or c >= g._cols:
 			raise IndexError()
 
 		if r < 0:
@@ -603,7 +603,7 @@ class GridSlice:
 
 	@staticmethod
 	def _validatestop(g: Grid, r: int, c: int) -> Position:
-		if r > g._rows or c > g._rows:
+		if r > g._rows or c > g._cols:
 			raise IndexError()
 
 		if r < 0:
