@@ -1,11 +1,11 @@
 """
-This module provides access to a `Grid` type, which can be used to represent
+This module provides access to the `Grid` type, which can be used to represent
 2-dimensional data.
 """
 
 
 import itertools as it
-from typing import Callable, Final, Generator, Union
+from typing import Callable, Final, Generator, Optional, Union, Generic, TypeVar
 
 
 # Type aliases
@@ -14,6 +14,8 @@ Dimensions = tuple[int, int]
 UnaryOperator = Callable[[object], object]
 Predicate = Callable[[object], bool]
 Consumer = Callable[[object], None]
+
+T = TypeVar('T')
 
 
 class _EmptyCell:
@@ -37,7 +39,7 @@ class _EmptyCell:
 		return 'Grid.EMPTY_CELL'
 
 
-class Grid:
+class Grid(Generic[T]):
 	"""
 	A fixed-size rectangular grid.
 	"""
@@ -47,14 +49,14 @@ class Grid:
 	Represents an empty grid cell. This object is the same across all `Grid` instances.
 	"""
 
-	def __init__(self, rows: int, cols: int, *elements: object):
+	def __init__(self, rows: int, cols: int, *elements: T):
 		"""
 		Creates a new Grid
 
 		Args:
 			rows (int): the number of rows in the grid
 			cols (int): the number of columns in the grid
-			*elements (object): the items to place in the grid
+			*elements (T): the items to place in the grid
 		"""
 		self._rows = rows
 		self._cols = cols
@@ -157,14 +159,14 @@ class Grid:
 	def _longest_element_length(self) -> int:
 		return max(len(str(e)) for e in self)
 
-	def add(self, o: object) -> bool:
+	def add(self, o: T) -> bool:
 		"""
 		Adds the specified element to this grid.
 
 		The element is inserted into the first empty cell.
 
 		Args:
-			o (object): the element to add
+			o (T): the element to add
 
 		Returns:
 			bool: `True` if the element was inserted successfully, otherwise `False`
@@ -175,7 +177,7 @@ class Grid:
 				return True
 		return False
 
-	def addall(self, *items: object) -> bool:
+	def addall(self, *items: T) -> bool:
 		"""
 		Adds all of the provided elements into this grid.
 
@@ -183,7 +185,7 @@ class Grid:
 		left or there are no elements remaining.
 
 		Args:
-			*items (object): the elements to add
+			*items (T): the elements to add
 
 		Returns:
 			bool: `True` if all of the elements were inserted successfully, otherwise `False`
@@ -209,14 +211,14 @@ class Grid:
 		"""
 		self.replaceall(lambda _: Grid.EMPTY_CELL)
 
-	def fill(self, o: object):
+	def fill(self, o: T):
 		"""
 		Fills this grid with the specified element.
 
 		This is the same as calling `grid.replaceall(lambda _: o)`.
 
 		Args:
-			o (object): the object to fill this grid with
+			o (T): the object to fill this grid with
 		"""
 		self.replaceall(lambda _: o)
 
@@ -296,12 +298,12 @@ class Grid:
 		for e in self:
 			action(e)
 
-	def positionof(self, o: object) -> Union[Position, None]:
+	def positionof(self, o: T) -> Optional[Position]:
 		"""
 		Finds the position of the first occurrence of the specified object in this grid.
 
 		Args:
-			o (object): the object to find the position of
+			o (T): the object to find the position of
 
 		Returns:
 			Position: the position of the object, or `None` if it was not found
@@ -311,12 +313,12 @@ class Grid:
 				return r, c
 		return None
 
-	def lastpositionof(self, o: object) -> Union[Position, None]:
+	def lastpositionof(self, o: T) -> Optional[Position]:
 		"""
 		Finds the position of the last occurrence of the specified object in this grid.
 
 		Args:
-			o (object): the object to find the position of
+			o (T): the object to find the position of
 
 		Returns:
 			Position: the last position of the object, or `None` if it was not found
@@ -331,7 +333,7 @@ class Grid:
 		row: int,
 		col: int,
 		include_diagonals: bool = False
-	) -> tuple[object, ...]:
+	) -> list[T]:
 		"""
 		Gets all of the elements adjacent to the specified cell, without wrapping.
 
@@ -342,7 +344,7 @@ class Grid:
 				are adjacent diagonally; defaults to `False`
 
 		Returns:
-			tuple[object, ...]: list of adjacent elements
+			list[T]: list of adjacent elements
 		"""
 
 		# helper function for filtering out None elements
@@ -359,7 +361,7 @@ class Grid:
 		))
 
 		if not include_diagonals:
-			return tuple(neighbors)
+			return list(neighbors)
 
 		# adjacent diagonally (top-left, top-right, bottom-left, bottom-right)
 		diagonals = filter(not_none, (
@@ -369,9 +371,9 @@ class Grid:
 			self._grid[row + 1][col + 1] if row < row_max and col < col_max else None
 		))
 
-		return (*neighbors, *diagonals)
+		return [*neighbors, *diagonals]
 
-	def elements(self, reverse: bool = False) -> Generator[tuple[object, int, int], None, None]:
+	def elements(self, reverse: bool = False) -> Generator[tuple[T, int, int], None, None]:
 		"""
 		Returns all of the elements of this grid along with their positions.
 
@@ -379,7 +381,7 @@ class Grid:
 			reverse (bool, optional): if `True`, indicates reverse iteration; defaults to `False`
 
 		Yields:
-			tuple[object, int, int]: the next element and its position `(element, row, col)`
+			tuple[T, int, int]: the next element and its position `(element, row, col)`
 		"""
 		return ((self._grid[r][c], r, c) for r, c in self.prod_rc(reverse))
 
@@ -489,10 +491,10 @@ class Grid:
 		
 		return Grid(n_rows, n_cols, *(val for _ in range(n_rows * n_cols)))
 
-	def __iter__(self) -> Generator[object, None, None]:
+	def __iter__(self) -> Generator[T, None, None]:
 		return (self._grid[r][c] for r, c in self.prod_rc())
 
-	def __reversed__(self) -> Generator[object, None, None]:
+	def __reversed__(self) -> Generator[T, None, None]:
 		return (self._grid[r][c] for r, c in self.prod_rc(True))
 
 
