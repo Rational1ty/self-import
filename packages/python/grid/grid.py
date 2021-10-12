@@ -51,7 +51,7 @@ class Grid(Generic[T]):
 
 	def __init__(self, rows: int, cols: int, *elements: T):
 		"""
-		Creates a new Grid
+		Creates a new Grid.
 
 		Args:
 			rows (int): the number of rows in the grid
@@ -61,6 +61,7 @@ class Grid(Generic[T]):
 		self._rows = rows
 		self._cols = cols
 		self._grid = []
+		self._empty_val = Grid.EMPTY_CELL
 		
 		for y in range(rows):
 			self._grid.append(_pad_tuple(elements[y * cols : (y + 1) * cols], cols))
@@ -71,7 +72,7 @@ class Grid(Generic[T]):
 		Creates a new Grid from a list of rows.
 
 		If the rows are not all the same length, they will be padded with 
-		Grid.EMPTY_CELL elements to the length of the longest row.
+		Grid.empty_val elements to the length of the longest row.
 
 		Args:
 			*rows (list): the rows to create the grid from
@@ -81,6 +82,35 @@ class Grid(Generic[T]):
 		"""
 		max_len = max(len(r) for r in rows)
 		return cls(len(rows), max_len, (_pad_list(r, max_len) for r in rows))
+
+	@property
+	def empty_cell(self) -> object:
+		"""
+		Represents an empty grid cell, or the "default" value for each cell. Defaults to
+		`Grid.EMPTY_CELL`, but can be overridden with `Grid.empty_val = <val>`
+		"""
+		return self._empty_val
+
+	@empty_cell.setter
+	def empty_cell(self, val: object):
+		for e, r, c in self.elements():
+			if e is self._empty_val:
+				self._grid[r][c] = val
+		self._empty_val = val
+
+	@property
+	def rows(self) -> int:
+		"""
+		The number of rows in this grid.
+		"""
+		return self._rows
+
+	@property
+	def cols(self) -> int:
+		"""
+		The number of columns in this grid.
+		"""
+		return self._cols
 
 	def dimensions(self) -> Dimensions:
 		"""
@@ -172,7 +202,7 @@ class Grid(Generic[T]):
 			bool: `True` if the element was inserted successfully, otherwise `False`
 		"""
 		for e, r, c in self.elements():
-			if e is Grid.EMPTY_CELL:
+			if e is self._empty_val:
 				self._grid[r][c] = o
 				return True
 		return False
@@ -193,7 +223,7 @@ class Grid(Generic[T]):
 		item_iter = iter(items)
 
 		for e, r, c in self.elements():
-			if e is Grid.EMPTY_CELL:
+			if e is self._empty_val:
 				try:
 					self._grid[r][c] = next(item_iter)
 				except StopIteration:
@@ -207,20 +237,21 @@ class Grid(Generic[T]):
 		
 	def clear(self):
 		"""
-		Clears this grid (all cells are set to `Grid.EMPTY_CELL`).
+		Clears this grid (all cells are set to `Grid.empty_val`).
 		"""
-		self.replaceall(lambda _: Grid.EMPTY_CELL)
+		self.replaceall(lambda _: self._empty_val)
 
 	def fill(self, o: T):
 		"""
 		Fills this grid with the specified element.
 
-		This is the same as calling `grid.replaceall(lambda _: o)`.
+		This has a similar effect to calling `grid.replaceall(lambda _: o)`.
 
 		Args:
 			o (T): the object to fill this grid with
 		"""
-		self.replaceall(lambda _: o)
+		for r, c in self.prod_rc():
+			self._grid[r][c] = o
 
 	def remove(self, o: object) -> bool:
 		"""
@@ -234,7 +265,7 @@ class Grid(Generic[T]):
 		"""
 		for e, r, c in self.elements():
 			if e == o:
-				self._grid[r][c] = Grid.EMPTY_CELL
+				self._grid[r][c] = self._empty_val
 				return True
 		return False
 
@@ -247,7 +278,7 @@ class Grid(Generic[T]):
 		"""
 		for e, r, c in self.elements():
 			if e not in items: continue
-			self._grid[r][c] = Grid.EMPTY_CELL
+			self._grid[r][c] = self._empty_val
 
 	def replaceall(self, replacefn: UnaryOperator):
 		"""
@@ -257,7 +288,7 @@ class Grid(Generic[T]):
 			replacefn (UnaryOperator): mapping function to call for each element
 		"""
 		for e, r, c in self.elements():
-			if e is Grid.EMPTY_CELL: continue
+			if e is self._empty_val: continue
 			self._grid[r][c] = replacefn(e)
 
 	def removeif(self, filter: Predicate):
@@ -270,9 +301,9 @@ class Grid(Generic[T]):
 			filter (Predicate): function used to filter elements
 		"""
 		for e, r, c in self.elements():
-			if e is Grid.EMPTY_CELL: continue
+			if e is self._empty_val: continue
 			if filter(e):
-				self._grid[r][c] = Grid.EMPTY_CELL
+				self._grid[r][c] = self._empty_val
 
 	def retainall(self, *items: object):
 		"""
@@ -284,7 +315,7 @@ class Grid(Generic[T]):
 		"""
 		for e, r, c in self.elements():
 			if e in items: continue
-			self._grid[r][c] = Grid.EMPTY_CELL
+			self._grid[r][c] = self._empty_val
 
 	def foreach(self, action: Consumer):
 		"""
@@ -464,14 +495,14 @@ class Grid(Generic[T]):
 		if isinstance(pos, slice):
 			gs = GridSlice(self, pos)
 			for r, c in gs.indices():
-				self._grid[r][c] = Grid.EMPTY_CELL
+				self._grid[r][c] = self._empty_val
 			return
 
 		r, c = pos
 		if not self._isvalidpos(r, c):
 			raise IndexError()
 
-		self._grid[r][c] = Grid.EMPTY_CELL
+		self._grid[r][c] = self._empty_val
 
 	def _isvalidpos(self, r: int, c: int) -> bool:
 		if r < 0:
@@ -511,8 +542,8 @@ class GridSlice:
 	Attributes:
 		start_y (int): row to start on (inclusive); defaults to `0`
 		start_x (int): column to start on (inclusive); defaults to `0`
-		stop_y (int): row to stop at (exclusive); defaults to `grid.dimensions()[0]`
-		stop_x (int): column to stop at (exclusive); defaults to `grid.dimensions()[1]`
+		stop_y (int): row to stop at (exclusive); defaults to `grid.rows`
+		stop_x (int): column to stop at (exclusive); defaults to `grid.cols`
 		step_y (int): step for rows; defaults to `1`
 		step_x (int): step for columns; defaults to `1`
 	"""
@@ -623,14 +654,14 @@ class GridSlice:
 		raise ValueError()
 
 
-def _pad_list(lst: list, length) -> list:
+def _pad_list(lst: list[T], length: int) -> list:
 	diff = length - len(lst)
 	if diff > 0:
 		lst.extend(Grid.EMPTY_CELL for _ in range(diff))
 	return lst
 
 
-def _pad_tuple(tup: tuple, length) -> list:
+def _pad_tuple(tup: tuple[T, ...], length: int) -> list:
 	diff = length - len(tup)
 	if diff > 0:
 		return [*tup, *(Grid.EMPTY_CELL for _ in range(diff))]

@@ -3,3 +3,4 @@ bin/
 .test/
 test/
 .vscode/
+__pycache__/
