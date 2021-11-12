@@ -8,14 +8,14 @@ import itertools as it
 from typing import Callable, Final, Generator, Optional, Union, Generic, TypeVar
 
 
+T = TypeVar('T')
+
 # Type aliases
 Position = tuple[int, int]
 Dimensions = tuple[int, int]
-UnaryOperator = Callable[[object], object]
-Predicate = Callable[[object], bool]
-Consumer = Callable[[object], None]
-
-T = TypeVar('T')
+UnaryOperator = Callable[[T], T]
+Predicate = Callable[[T], bool]
+Consumer = Callable[[T], None]
 
 
 class _EmptyCell:
@@ -60,19 +60,19 @@ class Grid(Generic[T]):
 		"""
 		self._rows = rows
 		self._cols = cols
-		self._grid = []
+		self._grid: list[list[T]] = []
 		self._empty_val = Grid.EMPTY_CELL
 		
 		for y in range(rows):
 			self._grid.append(_pad_tuple(elements[y * cols : (y + 1) * cols], cols))
 
 	@classmethod
-	def from_rows(cls, *rows: list) -> 'Grid':
+	def from_rows(cls, *rows: list[T]) -> 'Grid[T]':
 		"""
 		Creates a new Grid from a list of rows.
 
 		If the rows are not all the same length, they will be padded with 
-		Grid.empty_val elements to the length of the longest row.
+		`Grid.empty_cell` elements to the length of the longest row.
 
 		Args:
 			*rows (list): the rows to create the grid from
@@ -80,14 +80,16 @@ class Grid(Generic[T]):
 		Returns:
 			Grid: the grid
 		"""
-		max_len = max(len(r) for r in rows)
-		return cls(len(rows), max_len, (_pad_list(r, max_len) for r in rows))
+		max_len = max(map(len, rows))
+		new_grid = cls(len(rows), max_len)
+		new_grid._grid = [_pad_list(r, max_len) for r in rows]
+		return new_grid
 
 	@property
 	def empty_cell(self) -> object:
 		"""
 		Represents an empty grid cell, or the "default" value for each cell. Defaults to
-		`Grid.EMPTY_CELL`, but can be overridden with `Grid.empty_val = <val>`
+		`Grid.EMPTY_CELL`, but can be overridden with `Grid.empty_cell = <val>`
 		"""
 		return self._empty_val
 
@@ -237,7 +239,7 @@ class Grid(Generic[T]):
 		
 	def clear(self):
 		"""
-		Clears this grid (all cells are set to `Grid.empty_val`).
+		Clears this grid (all cells are set to `Grid.empty_cell`).
 		"""
 		self.replaceall(lambda _: self._empty_val)
 
@@ -329,12 +331,12 @@ class Grid(Generic[T]):
 		for e in self:
 			action(e)
 
-	def positionof(self, o: T) -> Optional[Position]:
+	def positionof(self, o: object) -> Optional[Position]:
 		"""
 		Finds the position of the first occurrence of the specified object in this grid.
 
 		Args:
-			o (T): the object to find the position of
+			o (object): the object to find the position of
 
 		Returns:
 			Position: the position of the object, or `None` if it was not found
@@ -344,12 +346,12 @@ class Grid(Generic[T]):
 				return r, c
 		return None
 
-	def lastpositionof(self, o: T) -> Optional[Position]:
+	def lastpositionof(self, o: object) -> Optional[Position]:
 		"""
 		Finds the position of the last occurrence of the specified object in this grid.
 
 		Args:
-			o (T): the object to find the position of
+			o (object): the object to find the position of
 
 		Returns:
 			Position: the last position of the object, or `None` if it was not found
@@ -429,8 +431,9 @@ class Grid(Generic[T]):
 		Returns:
 			itertools.product[Position]: `product` object of all possible `(row, col)` combinations
 		"""
-		return it.product(range(self._rows), range(self._cols)) if not reverse \
-		else it.product(reversed(range(self._rows)), reversed(range(self._cols)))
+		if reverse:
+			return it.product(reversed(range(self._rows)), reversed(range(self._cols)))
+		return it.product(range(self._rows), range(self._cols))
 
 	def __repr__(self) -> str:
 		elements = ', '.join(repr(e) for e in self)
@@ -473,7 +476,7 @@ class Grid(Generic[T]):
 
 		return self._grid[r][c]
 
-	def __setitem__(self, pos: Union[Position, slice], value: object):
+	def __setitem__(self, pos: Union[Position, slice], value: T):
 		if isinstance(pos, slice):
 			gs = GridSlice(self, pos)
 			fill = self._getfill(gs, value)
