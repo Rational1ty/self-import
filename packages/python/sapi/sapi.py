@@ -1,14 +1,21 @@
 import abc
 import enum
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 import win32com.client as wincl
 
 
+T = TypeVar('T')
+
+ISpeechBaseStream = Any
+ISpeechVoiceStatus = Any
 SpObjectToken = Any
 SpPhoneConverter = Any
 SpeechVisemeType = int
-SpVoice = Any
+
+
+class SpCollection(Generic[T]):
+	def Item(index: int) -> T: ...
 
 
 class SpeechVoiceEvents(enum.IntFlag):
@@ -24,6 +31,12 @@ class SpeechVoiceEvents(enum.IntFlag):
 	SVEAudioLevel = 512
 	SVEPrivate = 32768
 	SVEAllEvents = 33790
+
+
+class SpeechVoicePriority(enum.IntFlag):
+	SVPNormal = 0
+	SVPAlert = 1
+	SVPOver = 2
 
 
 class SpeechVoiceSpeakFlags(enum.IntFlag):
@@ -49,6 +62,51 @@ class SpeechVisemeFeature(enum.IntFlag):
 	SVFNone = 0
 	SVFStressed = 1
 	SVFEmphasis = 2
+
+
+class SpVoice:
+	AlertBoundary: SpeechVoiceEvents
+	AllowAudioOutputFormatChangesOnNextSet: bool
+	AudioOutput: SpObjectToken
+	AudioOutputStream: ISpeechBaseStream
+	EventInterests: SpeechVoiceEvents
+	Priority: SpeechVoicePriority
+	Rate: int
+	Status: ISpeechVoiceStatus
+	SynchronousSpeakTimeout: int
+	Voice: SpObjectToken
+	Volume: int
+
+	def DisplayUI(hWndParent: int, Title: str, TypeOfUI: str, ExtraData: Any = None): ...
+
+	def GetAudioOutputs(
+		RequiredAttributes: str = '',
+		OptionalAttributes: str = ''
+	) -> SpCollection[SpObjectToken]: ...
+
+	def GetVoices(
+		RequiredAttributes: str = '',
+		OptionalAttributes: str = ''
+	) -> SpCollection[SpObjectToken]: ...
+
+	def IsUISupported(TypeOfUI: str, ExtraData: Any = None) -> bool: ...
+
+	def Pause(): ...
+
+	def Resume(): ...
+
+	def Skip(Type: str, NumItems: int) -> int: ...
+
+	def Speak(Text: str, Flags: SpeechVoiceSpeakFlags = SpeechVoiceSpeakFlags.SVSFDefault) -> int: ...
+
+	def SpeakCompleteEvent() -> int: ...
+
+	def SpeakStream(
+		Stream: ISpeechBaseStream,
+		Flags: SpeechVoiceSpeakFlags = SpeechVoiceSpeakFlags.SVSFDefault
+	) -> int: ...
+
+	def WaitUntilDone(msTimeout: int) -> bool: ...
 
 
 class SpeechVoiceEventHandler(abc.ABC):
