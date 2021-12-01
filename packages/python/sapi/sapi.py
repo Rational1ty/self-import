@@ -1,21 +1,24 @@
 import abc
 import enum
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Iterable, TypeVar
 
 import win32com.client as wincl
-
 
 T = TypeVar('T')
 
 ISpeechBaseStream = Any
-ISpeechVoiceStatus = Any
 SpObjectToken = Any
-SpPhoneConverter = Any
 SpeechVisemeType = int
 
 
-class SpCollection(Generic[T]):
-	def Item(index: int) -> T: ...
+SP_MAX_WORD_LENGTH = 128
+SP_MAX_PRON_LENGTH = 384
+
+
+class SpeechRunState(enum.IntFlag):
+	SRSWaiting = 0
+	SRSDone = 1
+	SRSIsSpeaking = 2
 
 
 class SpeechVoiceEvents(enum.IntFlag):
@@ -31,6 +34,12 @@ class SpeechVoiceEvents(enum.IntFlag):
 	SVEAudioLevel = 512
 	SVEPrivate = 32768
 	SVEAllEvents = 33790
+
+
+class SpeechVisemeFeature(enum.IntFlag):
+	SVFNone = 0
+	SVFStressed = 1
+	SVFEmphasis = 2
 
 
 class SpeechVoicePriority(enum.IntFlag):
@@ -58,10 +67,31 @@ class SpeechVoiceSpeakFlags(enum.IntFlag):
     SVSFUnusedFlags = -128
 
 
-class SpeechVisemeFeature(enum.IntFlag):
-	SVFNone = 0
-	SVFStressed = 1
-	SVFEmphasis = 2
+class SpCollection(Generic[T]):
+	def Item(self, index: int) -> T: ...
+
+
+class SpPhoneConverter:
+	LanguageId: int
+
+	def IdToPhone(self, IdArray: int | list[int]) -> str: ...
+
+	def PhoneToId(self, Phonemes: str) -> Iterable[int]: ...
+
+
+class SpeechVoiceStatus:
+	CurrentStreamNumber: int
+	InputSentenceLength: int
+	InputSentencePosition: int
+	InputWordLength: int
+	InputWordPosition: int
+	LastBookmark: str
+	LastBookmarkId: int
+	LastHResult: int
+	LastStreamNumberQueued: int
+	PhonemeId: int
+	RunningState: SpeechRunState
+	VisemeId: int
 
 
 class SpVoice:
@@ -72,41 +102,44 @@ class SpVoice:
 	EventInterests: SpeechVoiceEvents
 	Priority: SpeechVoicePriority
 	Rate: int
-	Status: ISpeechVoiceStatus
+	Status: SpeechVoiceStatus
 	SynchronousSpeakTimeout: int
 	Voice: SpObjectToken
 	Volume: int
 
-	def DisplayUI(hWndParent: int, Title: str, TypeOfUI: str, ExtraData: Any = None): ...
+	def DisplayUI(self, hWndParent: int, Title: str, TypeOfUI: str, ExtraData: Any = None): ...
 
-	def GetAudioOutputs(
+	def GetAudioOutputs(self,
 		RequiredAttributes: str = '',
 		OptionalAttributes: str = ''
 	) -> SpCollection[SpObjectToken]: ...
 
-	def GetVoices(
+	def GetVoices(self,
 		RequiredAttributes: str = '',
 		OptionalAttributes: str = ''
 	) -> SpCollection[SpObjectToken]: ...
 
-	def IsUISupported(TypeOfUI: str, ExtraData: Any = None) -> bool: ...
+	def IsUISupported(self, TypeOfUI: str, ExtraData: Any = None) -> bool: ...
 
-	def Pause(): ...
+	def Pause(self): ...
 
-	def Resume(): ...
+	def Resume(self): ...
 
-	def Skip(Type: str, NumItems: int) -> int: ...
+	def Skip(self, Type: str, NumItems: int) -> int: ...
 
-	def Speak(Text: str, Flags: SpeechVoiceSpeakFlags = SpeechVoiceSpeakFlags.SVSFDefault) -> int: ...
+	def Speak(self,
+		Text: str,
+		Flags: SpeechVoiceSpeakFlags = SpeechVoiceSpeakFlags.SVSFDefault
+	) -> int: ...
 
-	def SpeakCompleteEvent() -> int: ...
+	def SpeakCompleteEvent(self) -> int: ...
 
-	def SpeakStream(
+	def SpeakStream(self,
 		Stream: ISpeechBaseStream,
 		Flags: SpeechVoiceSpeakFlags = SpeechVoiceSpeakFlags.SVSFDefault
 	) -> int: ...
 
-	def WaitUntilDone(msTimeout: int) -> bool: ...
+	def WaitUntilDone(self, msTimeout: int) -> bool: ...
 
 
 class SpeechVoiceEventHandler(abc.ABC):
@@ -160,14 +193,14 @@ class SpeechVoiceEventHandler(abc.ABC):
 		self._print_event('Word', locals())
 
 
-def getvoice(eventhandler: SpeechVoiceEventHandler = None) -> SpVoice:
-	if eventhandler is None:
+def getvoice(eventhandler: type[SpeechVoiceEventHandler] = ...) -> SpVoice:
+	if eventhandler is ...:
 		return wincl.Dispatch('SAPI.SpVoice')
 	return wincl.DispatchWithEvents('SAPI.SpVoice', eventhandler)
 
 
-def getspeakingvoice(voice: SpVoice, gender: str) -> SpObjectToken:
-	male = 'm' in gender.lower()
+def getspeaker(voice: SpVoice, gender: str) -> SpObjectToken:
+	male = gender.lower().startswith('m')
 	return voice.GetVoices().Item(0 if male else 1)
 
 
