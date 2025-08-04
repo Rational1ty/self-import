@@ -22,6 +22,9 @@ public final class Images {
 	private static final int N_CHANNELS = 3;
 
 	public static void main(String[] args) throws IOException {
+		// TODO: make into command line utility once parse-args is done
+		// TODO: update implementation to use java.nio API where possible
+
 		long start = System.currentTimeMillis();
 		
 		File source = new File("./test/sunglasses.jpg");
@@ -199,12 +202,12 @@ public final class Images {
 		int mainChannel = getGreatestRangeChannel(colors);
 
 		// get comparator to sort by main channel
-		Comparator<Integer> compareByMain = null;
-		switch (mainChannel) {
-			case 0:	compareByMain = (c1, c2) -> red(c1) - red(c2); 	   break;
-			case 1:	compareByMain = (c1, c2) -> green(c1) - green(c2); break;
-			case 2:	compareByMain = (c1, c2) -> blue(c1) - blue(c2);   break;
-		}
+		Comparator<Integer> compareByMain = switch (mainChannel) {
+			case 0 -> compareByMain = (c1, c2) -> red(c1) - red(c2);
+			case 1 -> compareByMain = (c1, c2) -> green(c1) - green(c2);
+			case 2 -> compareByMain = (c1, c2) -> blue(c1) - blue(c2);
+			default -> null;
+		};
 
 		int[] sorted = IntStream.of(colors)
 			.boxed()
@@ -231,7 +234,7 @@ public final class Images {
 		for (int i = 0; i < buckets.length; i++) {
 			for (int color : buckets[i]) {
 				int[] rgb = getRGB(color);
-				// could use a for loop for this, but it's 3 lines either way ¯\_(ツ)_/¯
+
 				averages[i][0] += rgb[0];
 				averages[i][1] += rgb[1];
 				averages[i][2] += rgb[2];
@@ -477,12 +480,12 @@ public final class Images {
 
 	private static int getColor(int[] rgb) {
 		// shift bits into correct byte and mask out anything else
-		int red   = rgb[0] << 16 & 0xFF0000;
-		int green = rgb[1] << 8 & 0x00FF00;
-		int blue  = rgb[2] & 0x0000FF;
+		int r = rgb[0] << 16 & 0xFF0000;
+		int g = rgb[1] << 8 & 0x00FF00;
+		int b = rgb[2] & 0x0000FF;
 
 		// add max alpha value and OR everything together
-		return 0xFF000000 | red | green | blue;
+		return 0xFF000000 | r | g | b;
 	}
 
 	private static int[] getRGB(int color) {
