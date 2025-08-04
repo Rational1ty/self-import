@@ -34,7 +34,8 @@ def typestub(cls: type) -> type:
 		code = inspect.cleandoc(inspect.getsource(fn_obj))
 		signature = re.sub(r'\s+', ' ', code.replace('\n', ''))
 		
-		empty = re.fullmatch(r'def .+\(.+\)(\s*->\s*.+)?:\s*...', signature)
+		emptyfn_regex = r'def .+\(.*\)(?:\s*->\s*.+)?:\s*(?:\.\.\.|pass|"[\s\S]*")'
+		empty = re.fullmatch(emptyfn_regex, signature)
 		
 		if not empty:
 			raise ImplementedError(f'{cls.__name__}.{name}: implementation not allowed in stub type')
